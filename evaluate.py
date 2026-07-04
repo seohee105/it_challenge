@@ -109,7 +109,7 @@ def main():
     ap = argparse.ArgumentParser(description="정확도 자동 평가 하니스")
     ap.add_argument("--labels", default=str(ROOT / "data" / "eval_labels.csv"))
     ap.add_argument("--engine", choices=["gemini"], default="gemini")
-    ap.add_argument("--quantity", choices=["gemini", "resnet"], default="gemini")
+    ap.add_argument("--quantity", choices=["gemini", "resnet", "hybrid"], default="gemini")
     ap.add_argument("--gemini-samples", type=int, default=3)
     ap.add_argument("--gemini-model", default="gemini-2.5-flash")
     ap.add_argument("--no-search", action="store_true")

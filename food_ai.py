@@ -555,9 +555,25 @@ class NutritionDB:
         }
 
 
+# 반찬/곁들임(대개 소량) 키워드 — 하이브리드 양추정 라우팅용
+_BANCHAN_KW = ("김치", "깍두기", "겉절이", "동치미", "나물", "무침", "생채",
+               "장아찌", "절임", "피클", "자반", "콩자반", "젓갈", "쌈", "멸치볶음")
+# 아래 단어가 들어가면 '요리(메인)'로 보고 반찬에서 제외(김치'찌개' 등)
+_MAIN_KW = ("찌개", "국", "탕", "전골", "볶음밥", "비빔밥", "덮밥", "찜", "조림",
+            "구이", "전", "면", "국수", "밥", "죽")
+
+
+def _is_banchan(name):
+    """음식명이 반찬/곁들임(소량)인지. 메인요리 단어가 있으면 반찬 아님(김치찌개↛반찬)."""
+    n = (name or "").replace(" ", "")
+    if any(m in n for m in _MAIN_KW):
+        return False
+    return any(kw in n for kw in _BANCHAN_KW)
+
+
 # ---- 통합 파이프라인 -------------------------------------------------------
 class FoodAIPipeline:
-    def __init__(self, device="cpu", quantity_backend="gemini", engine="gemini",
+    def __init__(self, device="cpu", quantity_backend="hybrid", engine="gemini",
                  gemini_model="gemini-2.5-flash", use_search=True,
                  gemini_samples=3, plate_cm=None):
         self.quantity_backend = quantity_backend
@@ -575,9 +591,9 @@ class FoodAIPipeline:
                 "(분류=Gemini, 양=Gemini 기본 / '--quantity resnet'이면 ResNet).")
         self.gemini_analyzer = GeminiFoodAnalyzer(
             model=gemini_model, use_search=use_search, n_samples=gemini_samples)
-        # ResNet 양추정 유지: '--quantity resnet'이면 Gemini가 잡은 음식 박스를
-        # 크롭해 ResNet으로 Q단계를 재추정한다.
-        if quantity_backend == "resnet":
+        # ResNet 양추정 로드: 'resnet'(단독) 또는 'hybrid'(반찬=ResNet, 메인=Gemini) 모드.
+        # Gemini가 잡은 음식 박스를 크롭해 ResNet으로 Q단계를 추정한다.
+        if quantity_backend in ("resnet", "hybrid"):
             self.resnet_q = QuantityEstimator(device=device)
 
     def _crop_for_resnet(self, pil_full, box):
@@ -606,16 +622,22 @@ class FoodAIPipeline:
 
         results = []
         for f in foods:
-            name, q = f["food"], f["q"]
-            q_backend = "gemini-expert"
-            # ResNet 양추정(선택): Gemini가 잡은 박스를 크롭해 Q단계를 재추정
+            name, gq = f["food"], f["q"]
+            # 기본: Gemini의 Q단계
+            q, ratio, q_backend = gq, Q_RATIO.get(gq, 1.0), "gemini-expert"
             if self.resnet_q is not None:
                 crop = self._crop_for_resnet(pil_full, f.get("box"))
                 _q, _p, probs_r = self.resnet_q.estimate(crop)
-                pct = probs_to_percent(probs_r)
-                q, ratio, q_backend = percent_to_q(pct), pct / 100.0, "resnet"
-            else:
-                ratio = Q_RATIO.get(q, 1.0)
+                rpct = probs_to_percent(probs_r)
+                rq = percent_to_q(rpct)
+                if self.quantity_backend == "resnet":
+                    q, ratio, q_backend = rq, rpct / 100.0, "resnet"
+                elif self.quantity_backend == "hybrid":
+                    # 상보 라우팅: 반찬·소량은 ResNet(소량 강점), 메인요리는 Gemini(정상 강점)
+                    if _is_banchan(name):
+                        q, ratio, q_backend = rq, rpct / 100.0, "hybrid(반찬→ResNet)"
+                    else:
+                        q_backend = "hybrid(메인→Gemini)"
             matched = self.nutrition.match(name)
             if matched:
                 nut = self.nutrition.calculate(name, q, ratio=ratio)
@@ -752,8 +774,9 @@ def main():
     ap.add_argument("--image", help="분석할 음식 사진 경로")
     ap.add_argument("--usage", action="store_true", help="오늘 Gemini 호출수(로컬 추적) 출력 후 종료")
     ap.add_argument("--device", default="cpu", help="cpu 또는 cuda(ResNet 양추정용)")
-    ap.add_argument("--quantity", choices=["gemini", "resnet"], default="gemini",
-                    help="양 추정 방식: gemini(기본, Gemini가 판단) / resnet(로컬 ResNet 재추정)")
+    ap.add_argument("--quantity", choices=["gemini", "resnet", "hybrid"], default="hybrid",
+                    help="양 추정: hybrid(기본, 반찬=ResNet·메인=Gemini 상보조합) / "
+                         "gemini(API만, torch 불필요) / resnet(로컬 ResNet)")
     ap.add_argument("--engine", choices=["gemini"], default="gemini",
                     help="gemini(Gemini 전문가 분석: 멀티음식+칼로리+검색). YOLO 로컬 분류기는 제거됨")
     ap.add_argument("--no-search", action="store_true", help="gemini 엔진에서 Google 검색 그라운딩 끄기")
