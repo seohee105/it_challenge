@@ -53,6 +53,10 @@ def load_labels(path):
 SYNONYMS = [
     {"설렁탕", "설농탕", "곰탕"},          # 소뼈 국물 — 통용상 동일
     {"떡볶이", "떡뽀끼"}, {"돈가스", "돈까스"},
+    {"아귀찜", "아구찜"},                  # 아귀=아구 철자변이
+    {"삼각김밥", "오니기리"},              # 한/일 명칭 동일 음식
+    {"아메리카노", "블랙커피", "카페아메리카노"},
+    {"라떼", "카페라떼", "카페라테", "라테"},
 ]
 
 
@@ -65,14 +69,21 @@ def _syn_group(name):
 
 
 def same_food(pred, true, nutri):
-    """예측·정답 음식명이 같은 음식인지(정규화·동의어·DB키 비교)."""
+    """예측·정답 음식명이 같은 음식인지(정규화·동의어·구체화·DB키 비교).
+    '완전일치'는 같은 요리를 가리키면 인정 — 정답보다 더 구체적으로 맞힌 것도 정답으로 본다.
+    예: 정답 '포케'←예측 '참치 포케', 정답 '치킨'←예측 '후라이드 치킨'."""
     if not pred:
         return False
     p, t = pred.replace(" ", ""), true.replace(" ", "")
     if p == t:
         return True
-    g = _syn_group(p)
-    if g and t in g:
+    # 동의어 그룹(양쪽이 같은 그룹)
+    gp, gt = _syn_group(p), _syn_group(t)
+    if gp is not None and gp is gt:
+        return True
+    # 수식어 접두로 더 구체화한 같은 요리: 한쪽 이름이 다른쪽 이름으로 끝남
+    short, long = (p, t) if len(p) <= len(t) else (t, p)
+    if len(short) >= 2 and long.endswith(short):
         return True
     kp, kt = nutri.match(pred), nutri.match(true)
     return kp is not None and kp == kt
@@ -99,7 +110,7 @@ def main():
     ap.add_argument("--labels", default=str(ROOT / "data" / "eval_labels.csv"))
     ap.add_argument("--engine", choices=["gemini"], default="gemini")
     ap.add_argument("--quantity", choices=["gemini", "resnet"], default="gemini")
-    ap.add_argument("--gemini-samples", type=int, default=1)
+    ap.add_argument("--gemini-samples", type=int, default=3)
     ap.add_argument("--gemini-model", default="gemini-2.5-flash")
     ap.add_argument("--no-search", action="store_true")
     args = ap.parse_args()

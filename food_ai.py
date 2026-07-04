@@ -336,7 +336,7 @@ class GeminiFoodAnalyzer:
         '"box":[<ymin>,<xmin>,<ymax>,<xmax>]}]'
     )
 
-    def __init__(self, model="gemini-2.5-flash", api_key=None, use_search=True, n_samples=1):
+    def __init__(self, model="gemini-2.5-flash", api_key=None, use_search=True, n_samples=3):
         self.model = model
         self.use_search = use_search
         self.n_samples = max(1, n_samples)
@@ -507,9 +507,7 @@ class NutritionDB:
         """1인분 기준 음식명(base+전북) 목록 — 하이브리드 후보 확장용."""
         return [k for k, info in self.db.items() if info.get("source") in ("base", "전북")]
 
-    def _match_in(self, nm, norm):
-        if nm in norm:                       # 띄어쓰기만 다른 경우
-            return norm[nm]
+    def _fuzzy_in(self, nm, norm):
         # 부분 포함은 길이 차이가 크지 않을 때만 허용(짧은 공통 음절 오매칭 방지)
         for k0, k in norm.items():
             if (nm in k0 or k0 in nm) and min(len(nm), len(k0)) / max(len(nm), len(k0)) >= 0.6:
@@ -519,14 +517,21 @@ class NutritionDB:
         return norm[cand[0]] if cand else None
 
     def match(self, name):
-        """음식명 → DB 키. 1인분 기준(dish)을 먼저 매칭하고, 없으면 전체(가공식품 포함).
-        띄어쓰기는 흡수하되 전혀 다른 음식은 매칭 안 함(마라탕 ↛ 고구마맛탕)."""
+        """음식명 → DB 키. 띄어쓰기만 다른 '정확 매칭'을 (dish→전체) 항상 먼저 시도하고,
+        그래도 없을 때만 부분포함/유사도 매칭으로 넘어간다.
+        → '김치 찌개'가 형제메뉴(참치김치찌개)로 새지 않고 정확히 '김치찌개'로 매칭됨.
+        전혀 다른 음식은 매칭 안 함(마라탕 ↛ 고구마맛탕)."""
         if not name:
             return None
         if name in self.db:
             return name
         nm = name.replace(" ", "")
-        return self._match_in(nm, self._norm_dish) or self._match_in(nm, self._norm_all)
+        # 1) 정확(띄어쓰기만 다른) 매칭 — dish(1인분) 먼저, 없으면 전체
+        exact = self._norm_dish.get(nm) or self._norm_all.get(nm)
+        if exact:
+            return exact
+        # 2) 부분포함/유사도 매칭 — dish 먼저, 없으면 전체
+        return self._fuzzy_in(nm, self._norm_dish) or self._fuzzy_in(nm, self._norm_all)
 
     def calculate(self, name, q, ratio=None):
         """ratio 를 직접 주면 그 연속 비율로 계산하고,
@@ -554,7 +559,7 @@ class NutritionDB:
 class FoodAIPipeline:
     def __init__(self, device="cpu", quantity_backend="gemini", engine="gemini",
                  gemini_model="gemini-2.5-flash", use_search=True,
-                 gemini_samples=1, plate_cm=None):
+                 gemini_samples=3, plate_cm=None):
         self.quantity_backend = quantity_backend
         self.engine = engine
         self.plate_cm = plate_cm
@@ -752,8 +757,9 @@ def main():
     ap.add_argument("--engine", choices=["gemini"], default="gemini",
                     help="gemini(Gemini 전문가 분석: 멀티음식+칼로리+검색). YOLO 로컬 분류기는 제거됨")
     ap.add_argument("--no-search", action="store_true", help="gemini 엔진에서 Google 검색 그라운딩 끄기")
-    ap.add_argument("--gemini-samples", type=int, default=1,
-                    help="Gemini self-consistency 샘플 수(중앙값/다수결). 예: 3 (변동 안정화)")
+    ap.add_argument("--gemini-samples", type=int, default=3,
+                    help="Gemini self-consistency 샘플 수(중앙값/다수결). 기본 3(안정적 정확도). "
+                         "토큰 아끼려면 1(속도↑, 변동↑)")
     ap.add_argument("--plate-cm", type=float, default=None,
                     help="접시/그릇 지름(cm). 주면 면적 기반으로 양을 더 정확히 추정")
     ap.add_argument("--gemini-model", default="gemini-2.5-flash", help="Gemini 모델명")
