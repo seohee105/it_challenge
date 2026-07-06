@@ -15,15 +15,33 @@ import numpy as np
 
 # 음식 종류별 '면적당 유효 무게(g/cm²)' — 국물은 깊어서 높고, 나물·전은 얇아서 낮음.
 # 유효밀도 ≈ 1인분 무게 / 1인분이 접시에서 차지하는 면적 (물리적 근사).
+# ※ 합성 밥 Q세트(정답 Q 명확)로 보정: q4(1인분)→ratio 1.0이 되도록 전 밀도 ×1.41 상향
+#   (구값은 체계적으로 ~40% 과소추정이었음). 보정 후 합성 4/4.
 _DENSITY_BY_KEYWORD = [
-    (("국", "탕", "찌개", "전골", "스프", "죽"), 2.6),   # 깊은 국물/걸쭉 → 높음
-    (("면", "국수", "냉면", "라면", "파스타", "우동", "짜장", "짬뽕"), 2.0),
-    (("밥", "덮밥", "볶음밥", "비빔밥", "리조또"), 1.6),
-    (("구이", "볶음", "조림", "찜", "불고기", "제육", "갈비", "스테이크"), 1.3),
-    (("김치", "장아찌", "젓", "절임", "무침", "나물", "겉절이", "샐러드"), 0.9),
-    (("전", "부침", "튀김", "까스", "가스", "피자", "빵", "과자"), 0.9),  # 납작
+    (("국", "탕", "찌개", "전골", "스프", "죽"), 3.7),   # 깊은 국물/걸쭉 → 높음
+    (("면", "국수", "냉면", "라면", "파스타", "우동", "짜장", "짬뽕"), 2.8),
+    (("밥", "덮밥", "볶음밥", "비빔밥", "리조또"), 2.25),
+    (("구이", "볶음", "조림", "찜", "불고기", "제육", "갈비", "스테이크"), 1.85),
+    (("김치", "장아찌", "젓", "절임", "무침", "나물", "겉절이", "샐러드"), 1.3),
+    (("전", "부침", "튀김", "까스", "가스", "피자", "빵", "과자"), 1.3),  # 납작
 ]
-_DENSITY_DEFAULT = 1.4
+_DENSITY_DEFAULT = 2.0
+
+# 그릇 종류별 대표 지름(cm) — 접시 지름을 정확히 모를 때 종류로 선택(--vessel).
+VESSEL_CM = {
+    "밥공기": 11, "국그릇": 16, "대접": 18, "뚝배기": 15,
+    "반찬접시": 13, "접시": 23, "큰접시": 27, "면기": 21, "쟁반": 30,
+}
+
+
+def vessel_cm(name):
+    """그릇 종류명 → 대표 지름(cm). 숫자를 주면 그대로 float로."""
+    if name is None:
+        return None
+    try:
+        return float(name)
+    except (TypeError, ValueError):
+        return VESSEL_CM.get(str(name).strip())
 
 
 def density_for(food_name):
@@ -121,10 +139,15 @@ if __name__ == "__main__":
         pass
     ap = argparse.ArgumentParser(description="기준 물체(접시) 기반 양추정")
     ap.add_argument("--image", required=True)
-    ap.add_argument("--plate-cm", type=float, required=True, help="접시 지름(cm)")
+    ap.add_argument("--plate-cm", type=float, default=None, help="접시 지름(cm)")
+    ap.add_argument("--vessel", default=None,
+                    help="접시 지름 대신 그릇 종류: " + "/".join(VESSEL_CM) + " (또는 숫자 cm)")
     ap.add_argument("--food", help="음식명(DB 1인분 대비 비율·칼로리 계산용)")
     ap.add_argument("--density", type=float, default=None, help="면적당 무게 g/cm²(기본: 음식종류별 자동)")
     args = ap.parse_args()
+    plate_cm = args.plate_cm or vessel_cm(args.vessel)
+    if plate_cm is None:
+        ap.error("--plate-cm(지름 cm) 또는 --vessel(그릇 종류) 중 하나가 필요합니다.")
     nut = food_ai.NutritionDB() if args.food else None
-    res = estimate_portion(args.image, args.plate_cm, args.food, nut, areal_density=args.density)
+    res = estimate_portion(args.image, plate_cm, args.food, nut, areal_density=args.density)
     print(json.dumps(res, ensure_ascii=False, indent=2))

@@ -8,8 +8,10 @@ __pycache__/
 .venv311/
 
 # 런타임 산출물 — 재생성 가능
-data/gemini_usage.json
 eval_*.txt
 
 # 참고: ResNet 가중치(models/quantity/weights/*.pth, 86MB)는 실행에 필요하므로 포함함
 # (GitHub 50MB 경고는 뜨지만 100MB 한계 이내)
+n5k_*.txt
+qty_*.txt
+*_result.txt
