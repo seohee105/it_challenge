@@ -266,7 +266,9 @@ class GeminiFoodAnalyzer:
         "- **국·탕·찌개는 그릇 깊이(국물이 찬 높이)까지 고려**해라(윗넓이만 보지 말 것).\n"
         "- 그 음식의 '평범한 1인분'과 비교해 정해. 낱개 세기보다 전체 양으로 판단.\n"
         "- **식당·가정에서 흔히 나오는 정상 서빙은 대개 Q4(1인분)다. 눈에 띄게 수북하거나 "
-        "곱빼기일 때만 Q5로 올려라(함부로 Q5 남발 금지).**\n\n"
+        "곱빼기일 때만 Q5로 올려라(함부로 Q5 남발 금지).**\n"
+        "- **Q와 함께 '실제 무게(그램)'도 추정해라 — 표준 1인분을 가정하지 말고, "
+        "사진에 실제로 담긴 양의 무게(g)를 사실적으로. 작으면 작게, 크면 크게.**\n\n"
         "## 3. 영양 추정 (칼로리 + 탄단지)\n"
         "- 사진에 보이는 양 기준의 대략적인 **총 칼로리(kcal)와 탄수화물(g)·단백질(g)·지방(g)**을 추정해.\n"
         "- 신뢰할 수 있는 '1인분 기준' 영양 자료를 근거로 추정하고, "
@@ -276,7 +278,7 @@ class GeminiFoodAnalyzer:
         "- 각 음식이 사진에서 차지하는 영역을 **0~1000 정규화 바운딩박스 [ymin,xmin,ymax,xmax]**로 표시해.\n\n"
         "## 출력 형식 — 반드시 아래 JSON 배열만, 다른 말은 절대 하지 마. "
         "음식이 하나여도 원소 1개짜리 배열로 출력해:\n"
-        '[{"food":"<음식 이름>","q":"<Q1~Q5 중 하나>",'
+        '[{"food":"<음식 이름>","grams":<실제 무게 숫자>,"q":"<Q1~Q5 중 하나>",'
         '"q_reason":"<양을 그렇게 판단한 짧은 이유>",'
         '"kcal_estimate":<숫자>,"carb_g":<숫자>,"protein_g":<숫자>,"fat_g":<숫자>,'
         '"box":[<ymin>,<xmin>,<ymax>,<xmax>]}]'
@@ -352,7 +354,11 @@ class GeminiFoodAnalyzer:
             box = it.get("box")
             if not (isinstance(box, (list, tuple)) and len(box) == 4):
                 box = None
-            out.append({"food": str(it.get("food", "")).strip(), "q": q,
+            try:
+                grams = float(it.get("grams")) if it.get("grams") is not None else None
+            except (TypeError, ValueError):
+                grams = None
+            out.append({"food": str(it.get("food", "")).strip(), "q": q, "grams": grams,
                         "q_reason": it.get("q_reason"), "kcal_estimate": it.get("kcal_estimate"),
                         "carb_g": it.get("carb_g"), "protein_g": it.get("protein_g"),
                         "fat_g": it.get("fat_g"), "box": box})
@@ -390,7 +396,7 @@ class GeminiFoodAnalyzer:
                 vals = [float(i[field]) for i in items if isinstance(i.get(field), (int, float))]
                 return round(statistics.median(vals), 1) if vals else rep.get(field)
             out.append({
-                "food": rep["food"], "q": q, "q_reason": rep.get("q_reason"),
+                "food": rep["food"], "q": q, "grams": med("grams"), "q_reason": rep.get("q_reason"),
                 "kcal_estimate": med("kcal_estimate"), "carb_g": med("carb_g"),
                 "protein_g": med("protein_g"), "fat_g": med("fat_g"),
                 "box": rep.get("box"), "samples": len(items),
@@ -619,6 +625,16 @@ class FoodAIPipeline:
                     else:
                         q_backend = "hybrid(메인→Gemini)"
             matched = self.nutrition.match(name)
+            # 그램 기반 양추정: Gemini가 준 '실제 무게(g)'를 DB 1인분 중량으로 나눠 비율 산출.
+            # 칼로리 = DB칼로리 × (그램/1인분중량) = 그램 × DB밀도. 실측상 Q비율보다 정확
+            # (±25% 5%→35%, ±50% 15%→75%). resnet/hybrid/접시기준 모드일 땐 건너뜀.
+            grams = f.get("grams")
+            if q_backend == "gemini-expert" and matched and isinstance(grams, (int, float)) and grams > 0:
+                base_w = num(self.nutrition.db[matched]["중량"])
+                if base_w > 0:
+                    ratio = grams / base_w
+                    q = percent_to_q(ratio * 100)
+                    q_backend = "gemini-grams"
             if matched:
                 nut = self.nutrition.calculate(name, q, ratio=ratio)
                 kcal, kcal_src = nut["kcal"], "DB"
@@ -638,6 +654,7 @@ class FoodAIPipeline:
                 "code": None, "name": name, "english": None,
                 "conf": None, "clf_src": "gemini-expert", "in_db": matched is not None,
                 "q": q, "q_percent": round(ratio * 100, 1), "q_backend": q_backend,
+                "grams": round(grams, 0) if isinstance(grams, (int, float)) else None,
                 "q_detail": {}, "q_reason": f.get("q_reason"),
                 "kcal": kcal, "kcal_source": kcal_src,
                 "nutrition": nut, "box": f.get("box"), "fallback": False,
@@ -741,7 +758,8 @@ def print_result(res):
             print(f'    ⚖ 양(블렌딩): {Q_LABEL.get(d["q"], d["q"])} ({d["q"]}, '
                   f'평균 ~{d["q_percent"]}% → x{round(d["q_percent"]/100,3)})')
         else:
-            print(f'    ⚖ 양: {Q_LABEL.get(d["q"], d["q"])} ({d["q"]}, ~{d["q_percent"]}%, {backend})')
+            gtag = f' · 약 {d["grams"]:.0f}g' if isinstance(d.get("grams"), (int, float)) else ""
+            print(f'    ⚖ 양: {Q_LABEL.get(d["q"], d["q"])} ({d["q"]}, ~{d["q_percent"]}%{gtag}, {backend})')
             if d.get("q_reason"):
                 print(f'       └ 근거: {d["q_reason"]}')
         n = d["nutrition"]
