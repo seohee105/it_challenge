@@ -271,8 +271,9 @@ class GeminiFoodAnalyzer:
         "사진에 실제로 담긴 양의 무게(g)를 사실적으로. 작으면 작게, 크면 크게.**\n\n"
         "## 3. 영양 추정 (칼로리 + 탄단지)\n"
         "- 사진에 보이는 양 기준의 대략적인 **총 칼로리(kcal)와 탄수화물(g)·단백질(g)·지방(g)**을 추정해.\n"
-        "- 신뢰할 수 있는 '1인분 기준' 영양 자료를 근거로 추정하고, "
-        "DB에 없는 생소한 음식이면 검색해서 표준 1인분 영양성분을 찾아 그 자료를 근거로 계산해.\n"
+        "- **그리고 이 음식의 '100g당 칼로리(kcal_per_100g)'도 추정해라** — 음식 자체의 열량밀도"
+        "(예: 삼겹살구이 약 330, 밥 약 150, 국물류 약 40).\n"
+        "- 신뢰할 수 있는 자료를 근거로 추정하고, DB에 없는 음식이면 검색해서 표준 영양성분으로 계산해.\n"
         "- 숫자만(단위 제외), 대략치라도 반드시 채워라.\n\n"
         "## 4. 위치 (box)\n"
         "- 각 음식이 사진에서 차지하는 영역을 **0~1000 정규화 바운딩박스 [ymin,xmin,ymax,xmax]**로 표시해.\n\n"
@@ -280,7 +281,8 @@ class GeminiFoodAnalyzer:
         "음식이 하나여도 원소 1개짜리 배열로 출력해:\n"
         '[{"food":"<음식 이름>","grams":<실제 무게 숫자>,"q":"<Q1~Q5 중 하나>",'
         '"q_reason":"<양을 그렇게 판단한 짧은 이유>",'
-        '"kcal_estimate":<숫자>,"carb_g":<숫자>,"protein_g":<숫자>,"fat_g":<숫자>,'
+        '"kcal_estimate":<숫자>,"kcal_per_100g":<숫자>,'
+        '"carb_g":<숫자>,"protein_g":<숫자>,"fat_g":<숫자>,'
         '"box":[<ymin>,<xmin>,<ymax>,<xmax>]}]'
     )
 
@@ -360,6 +362,7 @@ class GeminiFoodAnalyzer:
                 grams = None
             out.append({"food": str(it.get("food", "")).strip(), "q": q, "grams": grams,
                         "q_reason": it.get("q_reason"), "kcal_estimate": it.get("kcal_estimate"),
+                        "kcal_per_100g": it.get("kcal_per_100g"),
                         "carb_g": it.get("carb_g"), "protein_g": it.get("protein_g"),
                         "fat_g": it.get("fat_g"), "box": box})
         return out
@@ -397,8 +400,8 @@ class GeminiFoodAnalyzer:
                 return round(statistics.median(vals), 1) if vals else rep.get(field)
             out.append({
                 "food": rep["food"], "q": q, "grams": med("grams"), "q_reason": rep.get("q_reason"),
-                "kcal_estimate": med("kcal_estimate"), "carb_g": med("carb_g"),
-                "protein_g": med("protein_g"), "fat_g": med("fat_g"),
+                "kcal_estimate": med("kcal_estimate"), "kcal_per_100g": med("kcal_per_100g"),
+                "carb_g": med("carb_g"), "protein_g": med("protein_g"), "fat_g": med("fat_g"),
                 "box": rep.get("box"), "samples": len(items),
             })
         return out or runs[0]
@@ -639,9 +642,15 @@ class FoodAIPipeline:
                 nut = self.nutrition.calculate(name, q, ratio=ratio)
                 kcal, kcal_src = nut["kcal"], "DB"
             else:
-                # DB 미수록 → Gemini의 칼로리+탄단지 추정값으로 영양 구성
-                kcal = f.get("kcal_estimate")
-                kcal_src = "Gemini(검색추정)"
+                # DB 미수록 → Gemini 추정값. 그램·밀도(100g당kcal) 있으면 그램×밀도로 칼로리
+                # (Gemini 총kcal 직접값보다 안정적 — 실측상 그램방식이 우수).
+                kper = f.get("kcal_per_100g")
+                if isinstance(grams, (int, float)) and grams > 0 and isinstance(kper, (int, float)) and kper > 0:
+                    kcal = round(grams * kper / 100.0, 1)
+                    kcal_src = "Gemini(그램×밀도)"
+                else:
+                    kcal = f.get("kcal_estimate")
+                    kcal_src = "Gemini(검색추정)"
                 nut = None
                 if any(f.get(k) is not None for k in ("carb_g", "protein_g", "fat_g")):
                     nut = {
