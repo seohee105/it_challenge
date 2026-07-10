@@ -15,12 +15,14 @@
 - 오답 목록         : 예측 vs 정답
 
 [실행 예시]
-  # 기본(Gemini 전문가 엔진)
+  # 분류/양 정확도(라벨셋)
   python evaluate.py --labels data/eval_labels_all.csv
-  # 다수결 3샘플로 변동 안정화
   python evaluate.py --labels data/eval_labels_all.csv --gemini-samples 3
-  # 양추정을 로컬 ResNet으로
-  python evaluate.py --labels data/eval_labels_all.csv --quantity resnet
+
+[실측 칼로리 대조 모드 --dataset]  (임시 스크립트 대신 이거 하나로 재사용)
+  CSV(컬럼 자동감지: image/kcal[/food], 예 Nutrition5k·SimpleFood45·한식 실측)만 주면
+  추정 총칼로리 vs 실측 칼로리를 MAPE·±25%·±50%·상관계수로 대조한다.
+  python evaluate.py --dataset path/to/truth.csv
 """
 import argparse
 import csv
@@ -105,15 +107,119 @@ def same_family(pred, true):
     return difflib.SequenceMatcher(None, p, t).ratio() >= 0.65
 
 
+# ── 실측 대조 모드(--dataset): 어떤 실측셋이든 CSV 하나로 칼로리 정확도 측정 ──
+def load_dataset(path):
+    """실측 대조 CSV 로드. 컬럼 자동감지 — 이미지: image/img/file/path/dish,
+    칼로리: kcal/cal/energy/calorie(s), 음식(선택): food/label/name.
+    이미지 경로는 CSV 파일 폴더 기준 상대해석(확장자 없으면 .png/.jpg 시도)."""
+    base = Path(path).parent
+    rows = []
+    with open(path, encoding="utf-8-sig", newline="") as f:
+        rd = csv.DictReader(f)
+        cols = {(c or "").lower().strip(): c for c in (rd.fieldnames or [])}
+        pick = lambda cs: next((cols[c] for c in cs if c in cols), None)
+        icol = pick(["image", "img", "file", "path", "filename", "dish"])
+        kcol = pick(["kcal", "cal", "calorie", "calories", "energy"])
+        fcol = pick(["food", "label", "name"])
+        if not icol or not kcol:
+            raise ValueError(f"이미지/칼로리 컬럼을 못 찾음. 헤더: {rd.fieldnames}")
+        for r in rd:
+            iv, kv = (r.get(icol) or "").strip(), (r.get(kcol) or "").strip()
+            if not iv or not kv:
+                continue
+            try:
+                kcal = float(kv)
+            except ValueError:
+                continue
+            p = Path(iv) if Path(iv).is_absolute() else base / iv
+            if not p.exists():
+                for ext in (".png", ".jpg", ".jpeg"):
+                    if p.with_suffix(ext).exists():
+                        p = p.with_suffix(ext)
+                        break
+            rows.append({"image": str(p), "kcal": kcal,
+                         "food": (r.get(fcol) or "").strip() if fcol else ""})
+    return rows
+
+
+def run_dataset_eval(pipe, rows):
+    """추정 총칼로리 vs 실측 칼로리 대조: MAPE·±25%·±50%·상관계수(+정답 음식명 있으면 분류)."""
+    import statistics
+    pairs, cls_ok, cls_n, miss = [], 0, 0, []
+    print(f"{'파일':26s}{'실측':>7s}{'추정':>7s}{'오차%':>7s} 신뢰도")
+    print("-" * 60)
+    for r in rows:
+        if not Path(r["image"]).exists():
+            print(f"  [이미지 없음] {r['image']}")
+            continue
+        try:
+            res = pipe.analyze(r["image"])
+        except Exception as ex:
+            print(f"  [오류] {Path(r['image']).name}: {ex}")
+            continue
+        pcal = res.get("total_kcal") or 0
+        if pcal <= 0:
+            continue
+        pairs.append((r["kcal"], pcal))
+        err = (pcal - r["kcal"]) / r["kcal"] * 100
+        if r["food"]:
+            cls_n += 1
+            if any(same_food(d.get("name"), r["food"], pipe.nutrition) for d in res["detections"]):
+                cls_ok += 1
+            else:
+                miss.append((Path(r["image"]).name, r["food"],
+                             [d.get("name") for d in res["detections"][:2]]))
+        print(f"  {Path(r['image']).name[:26]:26s}{r['kcal']:7.0f}{pcal:7.0f}{err:+7.0f}% {res.get('kcal_reliability')}")
+    n = len(pairs)
+    print("\n" + "=" * 60)
+    if not n:
+        print("측정 0건")
+        return
+    errs = [abs(p - t) / t * 100 for t, p in pairs]
+    rate = lambda thr: sum(1 for e in errs if e <= thr) / n * 100
+    print(f"칼로리 실측 대조 {n}장")
+    print(f"  MAPE(평균절대오차) : {statistics.mean(errs):.0f}%")
+    print(f"  ±25% 이내 : {rate(25):.0f}%   ±50% 이내 : {rate(50):.0f}%")
+    print(f"  실측 평균 {statistics.mean([t for t, _ in pairs]):.0f} / 추정 평균 {statistics.mean([p for _, p in pairs]):.0f} kcal")
+    try:
+        import numpy as np
+        print(f"  상관계수 r = {np.corrcoef([t for t, _ in pairs], [p for _, p in pairs])[0, 1]:.2f}")
+    except Exception:
+        pass
+    if cls_n:
+        print(f"  (분류 완전일치 : {cls_ok}/{cls_n} = {cls_ok / cls_n * 100:.0f}%)")
+    if miss:
+        print("\n[분류 오답]")
+        for name, true, preds in miss[:15]:
+            print(f"  - {name}: 정답 {true} / 예측 {preds}")
+
+
 def main():
     ap = argparse.ArgumentParser(description="정확도 자동 평가 하니스")
     ap.add_argument("--labels", default=str(ROOT / "data" / "eval_labels.csv"))
+    ap.add_argument("--dataset", default=None,
+                    help="실측 대조 CSV(image,kcal[,food]) — 추정 칼로리 vs 실측 대조(MAPE·±%·상관). "
+                         "Nutrition5k·SimpleFood45·한식 실측 등 무엇이든 이 하나로")
     ap.add_argument("--engine", choices=["gemini"], default="gemini")
     ap.add_argument("--quantity", choices=["gemini", "resnet", "hybrid"], default="gemini")
     ap.add_argument("--gemini-samples", type=int, default=3)
     ap.add_argument("--gemini-model", default="gemini-2.5-flash")
     ap.add_argument("--no-search", action="store_true")
     args = ap.parse_args()
+
+    # 실측 대조 모드: 어떤 데이터셋이든 CSV 하나로 칼로리 정확도 측정(임시 스크립트 불필요)
+    if args.dataset:
+        rows = load_dataset(args.dataset)
+        if not rows:
+            print(f"실측 데이터 없음: {args.dataset}")
+            return
+        print(f"실측셋 {len(rows)}장 | quantity={args.quantity} samples={args.gemini_samples}\n")
+        pipe = fa.FoodAIPipeline(
+            quantity_backend=args.quantity, engine=args.engine,
+            gemini_model=args.gemini_model, use_search=not args.no_search,
+            gemini_samples=args.gemini_samples)
+        run_dataset_eval(pipe, rows)
+        return
 
     labels = load_labels(args.labels)
     if not labels:
