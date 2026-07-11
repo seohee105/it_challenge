@@ -332,11 +332,13 @@ class GeminiFoodAnalyzer:
         return None
 
     def _analyze_once(self, img):
+        err, got_response, items = None, False, None
         for with_search in ([True, False] if self.use_search else [False]):
             try:
                 resp = self.pool.generate(
                     model=self.model, contents=[img, self.PROMPT],
                     config=self._config(with_search))
+                got_response = True
                 payload = self._extract_json_array((resp.text or "").strip())
                 if payload:
                     try:
@@ -346,9 +348,13 @@ class GeminiFoodAnalyzer:
                     except json.JSONDecodeError:
                         pass
                 items = None
-            except Exception:
-                items = None
+            except Exception as ex:  # 호출 자체 실패(쿼터/네트워크/503 등)
+                err = ex
         if not items:
+            # 한 번도 응답을 못 받았고 예외만 있었다면 '음식 없음'이 아니라 호출 실패 →
+            # 상위에서 사용자에게 실패를 알릴 수 있게 전파(빈 결과로 삼키지 않음).
+            if not got_response and err is not None:
+                raise err
             return []
         out = []
         for it in items:
@@ -373,10 +379,20 @@ class GeminiFoodAnalyzer:
         """N회 분석 후 음식별로 비율·칼로리 중앙값으로 안정화(self-consistency)."""
         import statistics
         img = pil_img.convert("RGB")
-        runs = [self._analyze_once(img) for _ in range(self.n_samples)]
-        runs = [r for r in runs if r]
-        if not runs:
+        runs, err = [], None
+        for _ in range(self.n_samples):
+            try:
+                runs.append(self._analyze_once(img))
+            except Exception as ex:  # 이 샘플은 호출 자체가 실패
+                err = ex
+        good = [r for r in runs if r]
+        if not good:
+            # 응답을 한 번도 못 받고 전부 예외였다면 호출 실패를 상위에 전파,
+            # 응답은 왔으나 비었으면(runs에 [] 존재) 진짜 '음식 없음'.
+            if not runs and err is not None:
+                raise err
             return []
+        runs = good
         if len(runs) == 1:
             return runs[0]
         # 음식명(공백제거) 기준으로 여러 실행 결과를 묶어 중앙값 집계
@@ -621,7 +637,14 @@ class FoodAIPipeline:
         if bgr is None:
             raise FileNotFoundError(f"이미지를 열 수 없습니다: {image_path}")
         pil_full = Image.fromarray(bgr[:, :, ::-1])
-        foods = self.gemini_analyzer.analyze(pil_full)
+        try:
+            foods = self.gemini_analyzer.analyze(pil_full)
+        except Exception as ex:
+            # Gemini 호출이 전부 실패(쿼터 초과·네트워크·서버 과부하 등). '음식 없음'과
+            # 구분해 error로 명시 → 사용자가 재시도할지 알 수 있게 한다.
+            return {"image": str(image_path), "detections": [], "total_kcal": 0,
+                    "kcal_reliability": None, "kcal_note": None, "total_kcal_method": "합산",
+                    "error": f"AI 분석 호출 실패(쿼터 초과·네트워크·서버 과부하 등): {ex}"}
 
         results = []
         for f in foods:
@@ -718,7 +741,8 @@ class FoodAIPipeline:
                 total_method = "홀리스틱(접시전체 추정)"
                 note = (note or "") + " · 총합=접시전체 추정으로 보정(합산 과대 방지)"
         return {"image": str(image_path), "detections": results, "total_kcal": round(total, 1),
-                "kcal_reliability": rel, "kcal_note": note, "total_kcal_method": total_method}
+                "kcal_reliability": rel, "kcal_note": note, "total_kcal_method": total_method,
+                "error": None}
 
     def _plate_ref_override(self, image_path, r, region=None):
         """접시 기준(면적) 양추정으로 비율·칼로리를 덮어쓴다. region=박스면 그 영역만."""
@@ -746,6 +770,10 @@ class FoodAIPipeline:
 def print_result(res):
     print(f'\n📷 이미지: {res["image"]}')
     dets = res["detections"]
+    if res.get("error"):
+        print(f'  ⚠ {res["error"]}')
+        print("  → 음식이 없는 게 아니라 분석 호출이 실패했습니다. 잠시 후 다시 시도해 주세요.")
+        return
     if not dets:
         print("  음식을 찾지 못했습니다.")
         return
