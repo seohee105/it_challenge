@@ -545,13 +545,17 @@ class FoodAIPipeline:
                     "error": f"AI 분석 호출 실패(쿼터 초과·네트워크·서버 과부하 등): {ex}"}
 
         results = []
+        # 그램 보정은 '단품(감지 1개)'에만 적용. 실측상 편향이 음식 수에 따라 방향이 반대:
+        # 단품은 +15% 과다(스케일 편향)라 0.88이 옳지만, 혼합접시는 오히려 과소추정
+        # (항목 누락=커버리지 편향)이라 0.88을 곱하면 역효과(±25% 47→33%). → 단품만 보정.
+        single_food = len(foods) == 1
         for f in foods:
             name = f["food"]
             matched = self.nutrition.match(name)
             grams = f.get("grams")
-            # 편향 보정: Gemini는 양을 체계적으로 +12~16% 과다추정 → 보정계수를 곱해
-            # DB경로(ratio=grams/중량)·OOD경로(grams×밀도)·표시 그램에 일관 반영.
-            if isinstance(grams, (int, float)) and grams > 0 and self.gram_calib != 1.0:
+            # 편향 보정: 단품 Gemini 그램은 체계적으로 +12~16% 과다추정 → 보정계수로 상쇄.
+            # DB경로(ratio=grams/중량)·OOD경로(그램×밀도)·표시 그램에 일관 반영.
+            if single_food and isinstance(grams, (int, float)) and grams > 0 and self.gram_calib != 1.0:
                 grams = grams * self.gram_calib
             has_grams = isinstance(grams, (int, float)) and grams > 0
             # 양 = Gemini의 '실제 무게(그램)' 추정. DB 1인분 중량으로 나눠 연속 비율(ratio) 산출.
