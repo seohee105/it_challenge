@@ -202,7 +202,7 @@ def main():
                          "Nutrition5k·SimpleFood45·한식 실측 등 무엇이든 이 하나로")
     ap.add_argument("--engine", choices=["gemini"], default="gemini")
     ap.add_argument("--quantity", choices=["gemini", "resnet", "hybrid"], default="gemini")
-    ap.add_argument("--gemini-samples", type=int, default=3)
+    ap.add_argument("--gemini-samples", type=int, default=1)
     ap.add_argument("--gemini-model", default="gemini-3.5-flash")
     ap.add_argument("--no-search", action="store_true")
     args = ap.parse_args()

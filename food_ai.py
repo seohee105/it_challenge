@@ -288,7 +288,7 @@ class GeminiFoodAnalyzer:
         '"box":[<ymin>,<xmin>,<ymax>,<xmax>]}]'
     )
 
-    def __init__(self, model="gemini-3.5-flash", api_key=None, use_search=True, n_samples=3):
+    def __init__(self, model="gemini-3.5-flash", api_key=None, use_search=True, n_samples=1):
         self.model = model
         self.use_search = use_search
         self.n_samples = max(1, n_samples)
@@ -578,7 +578,7 @@ def _kcal_reliability(results, has_reference=False):
 class FoodAIPipeline:
     def __init__(self, device="cpu", quantity_backend="gemini", engine="gemini",
                  gemini_model="gemini-3.5-flash", use_search=True,
-                 gemini_samples=3, plate_cm=None):
+                 gemini_samples=1, plate_cm=None):
         self.quantity_backend = quantity_backend
         self.engine = engine
         self.plate_cm = plate_cm
@@ -827,9 +827,10 @@ def main():
     ap.add_argument("--engine", choices=["gemini"], default="gemini",
                     help="gemini(Gemini 전문가 분석: 멀티음식+칼로리+검색). YOLO 로컬 분류기는 제거됨")
     ap.add_argument("--no-search", action="store_true", help="gemini 엔진에서 Google 검색 그라운딩 끄기")
-    ap.add_argument("--gemini-samples", type=int, default=3,
-                    help="Gemini self-consistency 샘플 수(중앙값/다수결). 기본 3(안정적 정확도). "
-                         "토큰 아끼려면 1(속도↑, 변동↑)")
+    ap.add_argument("--gemini-samples", type=int, default=1,
+                    help="Gemini self-consistency 샘플 수(중앙값/다수결). 기본 1"
+                         "(3.5-flash는 단발도 안정적: 실측검증상 분류 -1.4pp·칼로리 동급, 비용 1/3·속도 3배). "
+                         "안정성 더 원하면 3")
     ap.add_argument("--plate-cm", type=float, default=None,
                     help="접시/그릇 지름(cm). 주면 면적 기반(접시기준)으로 양을 더 정확히 추정")
     ap.add_argument("--vessel", default=None,
