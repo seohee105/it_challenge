@@ -76,6 +76,13 @@ Q_RATIO = {"Q1": 0.25, "Q2": 0.5, "Q3": 0.75, "Q4": 1.0, "Q5": 1.25}
 Q_LABEL = {"Q1": "아주 적음", "Q2": "적음", "Q3": "보통", "Q4": "기준(1인분)", "Q5": "많음"}
 IDX_TO_Q = {0: "Q1", 1: "Q2", 2: "Q3", 3: "Q4", 4: "Q5"}
 
+# Gemini 그램(양) 추정 편향 보정계수. 실측 대조(SimpleFood45·Nutrition5k, 3.5-flash)에서
+# 정상분량이 일관되게 +12~16% 과다추정(추정/실측 중앙값 1.12) → 0.88을 곱해 보정.
+# 검증셋 정상분량(≥30kcal, 16장) MAPE 18→14%, ±25% 75→88%. 여러 모델·데이터셋에서
+# 편향 방향이 일치해 전역 적용. 한계: 서양·혼합접시 실측 기반이라 한식 실측 확보 시
+# 재튜닝 권장. 1.0=보정 없음. --gram-calib 로 오버라이드 가능.
+GRAM_CALIBRATION = 0.88
+
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
 
@@ -594,10 +601,12 @@ def _kcal_reliability(results, has_reference=False):
 class FoodAIPipeline:
     def __init__(self, device="cpu", quantity_backend="gemini", engine="gemini",
                  gemini_model="gemini-3.5-flash", use_search=True,
-                 gemini_samples=1, plate_cm=None):
+                 gemini_samples=1, plate_cm=None, gram_calib=None):
         self.quantity_backend = quantity_backend
         self.engine = engine
         self.plate_cm = plate_cm
+        # 그램 편향 보정계수(None이면 전역 기본 GRAM_CALIBRATION). 실측/재튜닝·해제용.
+        self.gram_calib = GRAM_CALIBRATION if gram_calib is None else gram_calib
         self.resnet_q = None
         self.gemini_analyzer = None
         self.nutrition = NutritionDB()
@@ -669,6 +678,10 @@ class FoodAIPipeline:
             # 칼로리 = DB칼로리 × (그램/1인분중량) = 그램 × DB밀도. 실측상 Q비율보다 정확
             # (±25% 5%→35%, ±50% 15%→75%). resnet/hybrid/접시기준 모드일 땐 건너뜀.
             grams = f.get("grams")
+            # 편향 보정: Gemini는 양을 체계적으로 +12~16% 과다추정 → 보정계수를 곱해
+            # DB경로(ratio=grams/중량)·OOD경로(grams×밀도)·표시 그램에 일관 반영.
+            if isinstance(grams, (int, float)) and grams > 0 and self.gram_calib != 1.0:
+                grams = grams * self.gram_calib
             if q_backend == "gemini-expert" and matched and isinstance(grams, (int, float)) and grams > 0:
                 base_w = num(self.nutrition.db[matched]["중량"])
                 if base_w > 0:
@@ -864,6 +877,8 @@ def main():
     ap.add_argument("--vessel", default=None,
                     help="지름 대신 그릇 종류(밥공기/국그릇/접시/큰접시 등)로 접시기준 양추정")
     ap.add_argument("--gemini-model", default="gemini-3.5-flash", help="Gemini 모델명")
+    ap.add_argument("--gram-calib", type=float, default=None,
+                    help=f"그램 편향 보정계수(기본 {GRAM_CALIBRATION}). 1.0=보정끔. 실측 재튜닝용")
     ap.add_argument("--json", action="store_true", help="JSON으로 출력")
     args = ap.parse_args()
 
@@ -882,7 +897,7 @@ def main():
                               engine=args.engine, gemini_model=args.gemini_model,
                               use_search=not args.no_search,
                               gemini_samples=args.gemini_samples,
-                              plate_cm=plate_cm)
+                              plate_cm=plate_cm, gram_calib=args.gram_calib)
     except RuntimeError as ex:
         print(f"⚠ {ex}")
         print("  → Gemini 기능은 GEMINI_API_KEY 가 필요합니다 (환경변수 설정).")

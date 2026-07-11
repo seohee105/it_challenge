@@ -205,6 +205,8 @@ def main():
     ap.add_argument("--gemini-samples", type=int, default=1)
     ap.add_argument("--gemini-model", default="gemini-3.5-flash")
     ap.add_argument("--no-search", action="store_true")
+    ap.add_argument("--gram-calib", type=float, default=None,
+                    help="그램 편향 보정계수(기본=food_ai.GRAM_CALIBRATION). 1.0=끔. 재튜닝용")
     args = ap.parse_args()
 
     # 실측 대조 모드: 어떤 데이터셋이든 CSV 하나로 칼로리 정확도 측정(임시 스크립트 불필요)
@@ -217,7 +219,7 @@ def main():
         pipe = fa.FoodAIPipeline(
             quantity_backend=args.quantity, engine=args.engine,
             gemini_model=args.gemini_model, use_search=not args.no_search,
-            gemini_samples=args.gemini_samples)
+            gemini_samples=args.gemini_samples, gram_calib=args.gram_calib)
         run_dataset_eval(pipe, rows)
         return
 
@@ -231,7 +233,8 @@ def main():
     pipe = fa.FoodAIPipeline(
         quantity_backend=args.quantity,
         engine=args.engine, gemini_model=args.gemini_model,
-        use_search=not args.no_search, gemini_samples=args.gemini_samples)
+        use_search=not args.no_search, gemini_samples=args.gemini_samples,
+        gram_calib=args.gram_calib)
 
     n = answered = cls_ok = fam_ok = q_exact = q_near = q_total = 0
     failed = []
