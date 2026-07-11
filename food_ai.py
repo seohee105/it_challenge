@@ -7,7 +7,7 @@
                           └▶ ③ 영양DB 조회 ─▶ 칼로리/탄단지 계산
 
 [모델]
-- ① 음식분류 : Gemini(gemini-2.5-flash). ※로컬 YOLOv3 분류기는 제거됨
+- ① 음식분류 : Gemini(gemini-3.5-flash). ※로컬 YOLOv3 분류기는 제거됨
 - ② 양추정   : Gemini 기본. '--quantity resnet'이면 models/quantity(ResNet, Q1~Q5)로 재추정
 - ③ 영양DB   : data/nutrition_db_merged.csv (없으면 nutrition_db.xlsx)
 
@@ -130,8 +130,10 @@ def gemini_keys(primary=None):
 
 
 def _is_quota_error(ex):
-    s = str(ex)
-    return "429" in s or "RESOURCE_EXHAUSTED" in s or "quota" in s.lower()
+    """재시도/키전환 대상인 일시적 오류(쿼터 429 + 서버 과부하 503)."""
+    s = str(ex).lower()
+    return ("429" in s or "resource_exhausted" in s or "quota" in s
+            or "503" in s or "unavailable" in s or "overload" in s)
 
 
 class RateLimiter:
@@ -286,7 +288,7 @@ class GeminiFoodAnalyzer:
         '"box":[<ymin>,<xmin>,<ymax>,<xmax>]}]'
     )
 
-    def __init__(self, model="gemini-2.5-flash", api_key=None, use_search=True, n_samples=3):
+    def __init__(self, model="gemini-3.5-flash", api_key=None, use_search=True, n_samples=3):
         self.model = model
         self.use_search = use_search
         self.n_samples = max(1, n_samples)
@@ -434,6 +436,17 @@ class GeminiFoodAnalyzer:
         return round(statistics.median(ests), 1) if ests else None
 
 
+# Gemini의 대체 표현(공백제거) → DB 표준 음식명. DB에 없는 이름을 표준명으로 정규화해
+# OOD(미매칭)·근사명칭 혼동을 줄인다. ※이미 DB에 있는 이름은 match에서 먼저 잡히므로 무영향.
+_FOOD_ALIASES = {
+    "오니기리": "삼각김밥",
+    "블랙커피": "아메리카노", "아메리카노커피": "아메리카노",
+    "라테": "카페라떼", "카페라테": "카페라떼",
+    "떡뽀끼": "떡볶이", "떡뽀키": "떡볶이",
+    "프라이드치킨": "후라이드치킨", "후라이드": "후라이드치킨",
+}
+
+
 # ---- ③ 영양DB -------------------------------------------------------------
 class NutritionDB:
     def __init__(self, db_path=DB_PATH, merged_path=MERGED_DB):
@@ -494,6 +507,7 @@ class NutritionDB:
         if name in self.db:
             return name
         nm = name.replace(" ", "")
+        nm = _FOOD_ALIASES.get(nm, nm)  # 동의어 → DB 표준명 정규화(오니기리→삼각김밥 등)
         # 1) 정확(띄어쓰기만 다른) 매칭 — dish(1인분) 먼저, 없으면 전체
         exact = self._norm_dish.get(nm) or self._norm_all.get(nm)
         if exact:
@@ -563,7 +577,7 @@ def _kcal_reliability(results, has_reference=False):
 # ---- 통합 파이프라인 -------------------------------------------------------
 class FoodAIPipeline:
     def __init__(self, device="cpu", quantity_backend="gemini", engine="gemini",
-                 gemini_model="gemini-2.5-flash", use_search=True,
+                 gemini_model="gemini-3.5-flash", use_search=True,
                  gemini_samples=3, plate_cm=None):
         self.quantity_backend = quantity_backend
         self.engine = engine
@@ -820,7 +834,7 @@ def main():
                     help="접시/그릇 지름(cm). 주면 면적 기반(접시기준)으로 양을 더 정확히 추정")
     ap.add_argument("--vessel", default=None,
                     help="지름 대신 그릇 종류(밥공기/국그릇/접시/큰접시 등)로 접시기준 양추정")
-    ap.add_argument("--gemini-model", default="gemini-2.5-flash", help="Gemini 모델명")
+    ap.add_argument("--gemini-model", default="gemini-3.5-flash", help="Gemini 모델명")
     ap.add_argument("--json", action="store_true", help="JSON으로 출력")
     args = ap.parse_args()
 
