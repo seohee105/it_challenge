@@ -1,18 +1,16 @@
-# 음식 분류 + 양 추정 파이프라인 런타임 의존성
-# Python 3.10~3.11 권장 (3.14 등 최신 버전은 PyTorch 미지원)
+# 음식 분류 + 양(그램) 추정 + 칼로리 파이프라인 런타임 의존성
+# Python 3.10~3.13 권장
 #
 # [설치]
 #   py -3.11 -m venv .venv311
 #   .\.venv311\Scripts\python -m pip install --upgrade pip
-#   .\.venv311\Scripts\python -m pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
 #   .\.venv311\Scripts\python -m pip install -r requirements.txt
 #
-# (GPU 사용 시 위 --index-url 을 본인 CUDA 버전에 맞게 변경)
+# ※ 분류·양(그램)·칼로리 모두 Gemini가 담당하므로 GEMINI_API_KEY 가 필요합니다
+#   (환경변수 또는 프로젝트 루트 .gemini_key 파일). 로컬 YOLO/ResNet 모델은 제거되어
+#   torch/torchvision 은 더 이상 필요 없습니다.
 
-# torch / torchvision 은 위 별도 인덱스로 설치 (아래는 검증된 버전 참고용)
-# torch==2.12.1
-# torchvision==0.27.1
-
+google-genai>=0.3
 opencv-python>=4.8
 numpy>=1.24
 pillow>=9
@@ -21,6 +19,3 @@ openpyxl>=3.1
 PyYAML>=6.0
 tqdm>=4.6
 matplotlib>=3.5
-
-# (선택) 양 추정을 Gemini로 할 때만 필요:  --quantity gemini
-# google-genai>=0.3

@@ -2,16 +2,15 @@
 """
 정확도 자동 평가 하니스
 =========================
-라벨이 달린 사진셋으로 파이프라인의 분류/양 정확도를 측정한다.
+라벨이 달린 사진셋으로 파이프라인의 분류 정확도를 측정한다.
+(양 정확도는 그램 실측이 필요하므로 --dataset 모드의 칼로리 MAPE로 평가)
 
-[라벨 파일]  data/eval_labels.csv  (헤더: image,food,q)
+[라벨 파일]  data/eval_labels.csv  (헤더: image,food)
 - image : 사진 경로(프로젝트 기준 상대경로 OK)
 - food  : 정답 음식명(한국어)
-- q     : 정답 양 단계 Q1~Q5 (선택; 비우면 양 평가 제외)
 
 [측정 지표]
 - 분류 top-1 정확도 : 예측 음식이 정답과 같은 음식(DB 정규화/띄어쓰기 무시)인지
-- 양 정확도         : 정확히 같은 Q단계 / ±1단계 이내
 - 오답 목록         : 예측 vs 정답
 
 [실행 예시]
@@ -37,7 +36,6 @@ except Exception:
     pass
 
 ROOT = Path(__file__).parent
-Q_ORDER = {"Q1": 0, "Q2": 1, "Q3": 2, "Q4": 3, "Q5": 4}
 
 
 def load_labels(path):
@@ -47,7 +45,7 @@ def load_labels(path):
             img = (r.get("image") or "").strip()
             food = (r.get("food") or "").strip()
             if img and food:
-                rows.append({"image": img, "food": food, "q": (r.get("q") or "").strip().upper()})
+                rows.append({"image": img, "food": food})
     return rows
 
 
@@ -201,7 +199,6 @@ def main():
                     help="실측 대조 CSV(image,kcal[,food]) — 추정 칼로리 vs 실측 대조(MAPE·±%·상관). "
                          "Nutrition5k·SimpleFood45·한식 실측 등 무엇이든 이 하나로")
     ap.add_argument("--engine", choices=["gemini"], default="gemini")
-    ap.add_argument("--quantity", choices=["gemini", "resnet", "hybrid"], default="gemini")
     ap.add_argument("--gemini-samples", type=int, default=1)
     ap.add_argument("--gemini-model", default="gemini-3.5-flash")
     ap.add_argument("--no-search", action="store_true")
@@ -215,9 +212,9 @@ def main():
         if not rows:
             print(f"실측 데이터 없음: {args.dataset}")
             return
-        print(f"실측셋 {len(rows)}장 | quantity={args.quantity} samples={args.gemini_samples}\n")
+        print(f"실측셋 {len(rows)}장 | samples={args.gemini_samples}\n")
         pipe = fa.FoodAIPipeline(
-            quantity_backend=args.quantity, engine=args.engine,
+            engine=args.engine,
             gemini_model=args.gemini_model, use_search=not args.no_search,
             gemini_samples=args.gemini_samples, gram_calib=args.gram_calib)
         run_dataset_eval(pipe, rows)
@@ -228,15 +225,14 @@ def main():
         print(f"라벨이 없습니다: {args.labels}")
         return
     print(f"평가셋 {len(labels)}장 | engine={args.engine} "
-          f"quantity={args.quantity} samples={args.gemini_samples}\n")
+          f"samples={args.gemini_samples}\n")
 
     pipe = fa.FoodAIPipeline(
-        quantity_backend=args.quantity,
         engine=args.engine, gemini_model=args.gemini_model,
         use_search=not args.no_search, gemini_samples=args.gemini_samples,
         gram_calib=args.gram_calib)
 
-    n = answered = cls_ok = fam_ok = q_exact = q_near = q_total = 0
+    n = answered = cls_ok = fam_ok = 0
     failed = []
     misses = []
     for row in labels:
@@ -264,18 +260,12 @@ def main():
             fam_ok += 1
         if not fam:
             misses.append((row["image"], row["food"], preds))
-        # 양: 정답 q가 있고, 해당 음식을 맞췄을 때만 평가
-        if row["q"] in Q_ORDER and hit and hit.get("q") in Q_ORDER:
-            q_total += 1
-            diff = abs(Q_ORDER[hit["q"]] - Q_ORDER[row["q"]])
-            if diff == 0:
-                q_exact += 1
-            if diff <= 1:
-                q_near += 1
+        # 양 정확도: 그램 실측 라벨이 없으므로 여기선 평가하지 않음(--dataset 칼로리 MAPE로 대체).
+        # 참고용으로 예측 그램만 표기.
         mark = "✓" if hit else "✗"
-        pq = hit.get("q") if hit else "-"
-        print(f"  {mark} {row['image']:38s} 정답={row['food']}/{row['q'] or '-'}  "
-              f"예측={preds}/{pq}")
+        pg = f'{hit.get("grams"):.0f}g' if hit and isinstance(hit.get("grams"), (int, float)) else "-"
+        print(f"  {mark} {row['image']:38s} 정답={row['food']}  "
+              f"예측={preds}/{pg}")
 
     print("\n" + "=" * 60)
     if not n:
@@ -289,9 +279,6 @@ def main():
     print("── 전체 기준(실패 포함) ──")
     print(f"  완전일치            : {cls_ok}/{n} = {cls_ok/n*100:.1f}%")
     print(f"  같은 음식군          : {fam_ok}/{n} = {fam_ok/n*100:.1f}%")
-    if q_total:
-        print(f"양 정확도(정확)   : {q_exact}/{q_total} = {q_exact/q_total*100:.1f}%")
-        print(f"양 정확도(±1단계) : {q_near}/{q_total} = {q_near/q_total*100:.1f}%")
     if misses:
         print("\n[진짜 오답(응답했으나 틀림)]")
         for img, true, preds in misses:
