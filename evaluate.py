@@ -209,6 +209,8 @@ def main():
     ap.add_argument("--no-search", action="store_true")
     ap.add_argument("--gram-calib", type=float, default=None,
                     help="그램 편향 보정계수(기본=food_ai.GRAM_CALIBRATION). 1.0=끔. 재튜닝용")
+    ap.add_argument("--no-holistic-multi", action="store_true",
+                    help="다중음식 홀리스틱(기본 켜짐)을 끄고 항목 합산으로")
     args = ap.parse_args()
 
     # 실측 대조 모드: 어떤 데이터셋이든 CSV 하나로 칼로리 정확도 측정(임시 스크립트 불필요)
@@ -221,7 +223,8 @@ def main():
         pipe = fa.FoodAIPipeline(
             engine=args.engine,
             gemini_model=args.gemini_model, use_search=not args.no_search,
-            gemini_samples=args.gemini_samples, gram_calib=args.gram_calib)
+            gemini_samples=args.gemini_samples, gram_calib=args.gram_calib,
+            holistic_multi=not args.no_holistic_multi)
         run_dataset_eval(pipe, rows)
         return
 

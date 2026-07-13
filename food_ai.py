@@ -510,11 +510,16 @@ def _kcal_reliability(results, has_reference=False):
 class FoodAIPipeline:
     def __init__(self, engine="gemini",
                  gemini_model="gemini-3.5-flash", use_search=True,
-                 gemini_samples=1, plate_cm=None, gram_calib=None):
+                 gemini_samples=1, plate_cm=None, gram_calib=None,
+                 holistic_multi=True):
         self.engine = engine
         self.plate_cm = plate_cm
         # 그램 편향 보정계수(None이면 전역 기본 GRAM_CALIBRATION). 실측/재튜닝·해제용.
         self.gram_calib = GRAM_CALIBRATION if gram_calib is None else gram_calib
+        # 다중음식(2개+)은 홀리스틱(접시 전체 통추정)으로 총칼로리 산출. 실측상 항목 합산보다
+        # 우수(혼합접시 MAPE 28→24%·±25% 53→64%·상관 0.36→0.70). 항목 누락(커버리지) 보완.
+        # 대가로 다중음식 접시당 estimate_total_kcal 호출 1회 추가. 끄려면 False.
+        self.holistic_multi = holistic_multi
         self.gemini_analyzer = None
         self.nutrition = NutritionDB()
 
@@ -619,7 +624,9 @@ class FoodAIPipeline:
         # 접시 전체를 통으로 본 홀리스틱 총 칼로리로 보정(실측상 오차 절반).
         # 각 항목 칼로리·탄단지도 비율만큼 축소해 합계와 맞춘다.
         total_method = "합산"
-        if rel == "낮음" and not self.plate_cm:
+        # 발동: 신뢰도 낮음(기본) 또는 holistic_multi 실험모드에서 다중음식(2개+).
+        holistic_on = (rel == "낮음") or (self.holistic_multi and len(named) >= 2)
+        if holistic_on and not self.plate_cm:
             h = self.gemini_analyzer.estimate_total_kcal(pil_full)
             if h is not None and total > 0:
                 h = min(h, 2500.0)  # 상식 상한(폭주 방지)
@@ -747,6 +754,8 @@ def main():
     ap.add_argument("--gemini-model", default="gemini-3.5-flash", help="Gemini 모델명")
     ap.add_argument("--gram-calib", type=float, default=None,
                     help=f"그램 편향 보정계수(기본 {GRAM_CALIBRATION}). 1.0=보정끔. 실측 재튜닝용")
+    ap.add_argument("--no-holistic-multi", action="store_true",
+                    help="다중음식 홀리스틱 총칼로리(기본 켜짐)를 끄고 항목 합산으로")
     ap.add_argument("--json", action="store_true", help="JSON으로 출력")
     args = ap.parse_args()
 
@@ -763,7 +772,8 @@ def main():
         pipe = FoodAIPipeline(engine=args.engine, gemini_model=args.gemini_model,
                               use_search=not args.no_search,
                               gemini_samples=args.gemini_samples,
-                              plate_cm=plate_cm, gram_calib=args.gram_calib)
+                              plate_cm=plate_cm, gram_calib=args.gram_calib,
+                              holistic_multi=not args.no_holistic_multi)
     except RuntimeError as ex:
         print(f"⚠ {ex}")
         print("  → Gemini 기능은 GEMINI_API_KEY 가 필요합니다 (환경변수 설정).")
