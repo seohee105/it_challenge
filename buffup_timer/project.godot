@@ -1,0 +1,19 @@
+; Engine configuration file.
+config_version=5
+
+[application]
+
+config/name="BuffUp Diet Timer"
+run/main_scene="res://scenes/Home.tscn"
+config/features=PackedStringArray("4.3", "GL Compatibility")
+
+[autoload]
+
+ExerciseData="*res://scripts/ExerciseData.gd"
+SessionManager="*res://scripts/SessionManager.gd"
+
+[display]
+
+window/size/viewport_width=390
+window/size/viewport_height=844
+window/stretch/mode="canvas_items"
