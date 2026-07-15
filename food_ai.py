@@ -203,6 +203,13 @@ class GeminiFoodAnalyzer:
         "(예: 삼겹살구이 약 330, 밥 약 150, 국물류 약 40).\n"
         "- 신뢰할 수 있는 자료를 근거로 추정하고, DB에 없는 음식이면 검색해서 표준 영양성분으로 계산해.\n"
         "- 숫자만(단위 제외), 대략치라도 반드시 채워라.\n\n"
+        "## 3.5 영양성분표(라벨)가 보이면 — 눈대중 말고 표를 읽어라\n"
+        "- 포장 식품(편의점 도시락·과자·음료·단백질바 등)이고 **영양성분표가 사진에서 판독 가능하면**, "
+        "추정하지 말고 **표에 적힌 값을 그대로 읽어** kcal_estimate·carb_g·protein_g·fat_g에 넣고 "
+        "**from_label을 true**로 표시해라.\n"
+        "- 표의 기준을 반영해라: '총 내용량 기준' 값이 있으면 그걸, '1회 제공량(1회분) 기준'뿐이고 "
+        "사진에 여러 회분이 보이면 회분 수만큼 곱해라. grams에는 실제 섭취량(g/ml)을 넣어라.\n"
+        "- 표가 안 보이거나 읽을 수 없으면 from_label=false로 두고 기존처럼 추정해라.\n\n"
         "## 4. 위치 (box)\n"
         "- 각 음식이 사진에서 차지하는 영역을 **0~1000 정규화 바운딩박스 [ymin,xmin,ymax,xmax]**로 표시해.\n\n"
         "## 출력 형식 — 반드시 아래 JSON 배열만, 다른 말은 절대 하지 마. "
@@ -211,6 +218,7 @@ class GeminiFoodAnalyzer:
         '"amount_reason":"<무게를 그렇게 판단한 짧은 이유>",'
         '"kcal_estimate":<숫자>,"kcal_per_100g":<숫자>,'
         '"carb_g":<숫자>,"protein_g":<숫자>,"fat_g":<숫자>,'
+        '"from_label":<true 또는 false>,'
         '"box":[<ymin>,<xmin>,<ymax>,<xmax>]}]'
     )
 
@@ -323,7 +331,8 @@ class GeminiFoodAnalyzer:
                         "kcal_estimate": it.get("kcal_estimate"),
                         "kcal_per_100g": it.get("kcal_per_100g"),
                         "carb_g": it.get("carb_g"), "protein_g": it.get("protein_g"),
-                        "fat_g": it.get("fat_g"), "box": box})
+                        "fat_g": it.get("fat_g"), "from_label": bool(it.get("from_label")),
+                        "box": box})
         return out
 
     def analyze(self, pil_img):
@@ -374,6 +383,8 @@ class GeminiFoodAnalyzer:
                 "food": rep["food"], "grams": med("grams"), "amount_reason": rep.get("amount_reason"),
                 "kcal_estimate": med("kcal_estimate"), "kcal_per_100g": med("kcal_per_100g"),
                 "carb_g": med("carb_g"), "protein_g": med("protein_g"), "fat_g": med("fat_g"),
+                # 과반 실행이 라벨판독이면 라벨로 간주(라벨값은 med로 안정화됨)
+                "from_label": sum(1 for i in items if i.get("from_label")) > len(items) / 2,
                 "box": rep.get("box"), "samples": len(items),
             })
         return out or runs[0]
@@ -523,7 +534,8 @@ def _kcal_reliability(results, has_reference=False):
     n = len(named)
     if n == 0:
         return None, None
-    ood = sum(1 for r in named if not r.get("in_db"))
+    # 라벨 판독 항목은 DB 못지않게 정확하므로 OOD로 치지 않음.
+    ood = sum(1 for r in named if not r.get("in_db") and not r.get("from_label"))
     if has_reference:  # 접시기준(면적)으로 실제 양을 잰 경우
         return "높음", "접시기준(면적) 반영"
     if n >= 4 or (n >= 2 and ood >= 2 and ood >= n - ood):
@@ -602,7 +614,20 @@ class FoodAIPipeline:
                 base_w = num(self.nutrition.db[matched]["중량"])
                 if base_w > 0:
                     ratio = grams / base_w
-            if matched:
+            # 영양성분표(라벨) 판독값이 있으면 최우선 — DB·그램추정보다 정확(가공식품).
+            from_label = bool(f.get("from_label")) and isinstance(f.get("kcal_estimate"), (int, float))
+            if from_label:
+                kcal, kcal_src = f.get("kcal_estimate"), "영양성분표(라벨)"
+                qty_source = "라벨(영양성분표)"
+                nut = None
+                if any(f.get(k) is not None for k in ("carb_g", "protein_g", "fat_g")):
+                    nut = {
+                        "matched": name, "kcal": kcal, "base_kcal": kcal,
+                        "grams": round(grams, 1) if has_grams else None, "base_w": None, "basis": "라벨",
+                        "carb": f.get("carb_g"), "protein": f.get("protein_g"),
+                        "fat": f.get("fat_g"), "sodium": None, "source": "영양성분표",
+                    }
+            elif matched:
                 nut = self.nutrition.calculate(name, ratio=ratio)
                 kcal, kcal_src = nut["kcal"], "DB"
             else:
@@ -626,6 +651,7 @@ class FoodAIPipeline:
             results.append({
                 "code": None, "name": name, "english": None,
                 "conf": None, "clf_src": "gemini-expert", "in_db": matched is not None,
+                "from_label": from_label,
                 "grams": round(grams, 0) if has_grams else None,
                 # portion_pct: 1인분 대비 %(DB매칭일 때만 의미 — 1인분 기준이 존재). OOD는 None.
                 "portion_pct": round(ratio * 100, 1) if matched else None,
@@ -658,8 +684,14 @@ class FoodAIPipeline:
             h = self.gemini_analyzer.estimate_total_kcal(pil_full)
             if h is not None and total > 0:
                 h = min(h, 2500.0)  # 상식 상한(폭주 방지)
-                factor = h / total
+                # 라벨 판독 항목은 정확값이라 재조정에서 제외 — 나머지 추정 항목만 h에 맞춰 보정.
+                label_kcal = sum(r["kcal"] for r in results
+                                 if r.get("from_label") and isinstance(r.get("kcal"), (int, float)))
+                est_total = total - label_kcal
+                factor = (max(0.0, h - label_kcal) / est_total) if est_total > 0 else 1.0
                 for r in results:
+                    if r.get("from_label"):
+                        continue  # 라벨값 보존
                     if isinstance(r.get("kcal"), (int, float)):
                         r["kcal"] = round(r["kcal"] * factor, 1)
                     nut = r.get("nutrition")
@@ -667,7 +699,7 @@ class FoodAIPipeline:
                         for kk in ("kcal", "carb", "protein", "fat"):
                             if isinstance(nut.get(kk), (int, float)):
                                 nut[kk] = round(nut[kk] * factor, 1)
-                total = h
+                total = round(label_kcal + est_total * factor, 1) if est_total > 0 else total
                 total_method = "홀리스틱(접시전체 추정)"
                 note = (note or "") + " · 총합=접시전체 추정으로 보정(합산 과대 방지)"
         return {"image": str(image_path), "detections": results, "total_kcal": round(total, 1),
@@ -720,7 +752,9 @@ def print_result(res):
         if d.get("low_conf") and d.get("alternatives"):
             alts = ", ".join(f'{a["name"]}({a["conf"]})' for a in d["alternatives"])
             print(f'       🤔 확신 낮음 — 다른 후보: {alts}')
-        if not d.get("in_db", True):
+        if d.get("from_label"):
+            print("       🏷 영양성분표 판독값 사용(가공식품) — 추정보다 정확")
+        elif not d.get("in_db", True):
             if d.get("kcal") is not None:
                 print("       ⓘ 영양DB 미수록 → 칼로리는 Gemini 검색 기반 추정값")
             else:
