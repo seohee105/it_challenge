@@ -204,7 +204,7 @@ def run_dataset_eval(pipe, rows):
 
 def main():
     ap = argparse.ArgumentParser(description="정확도 자동 평가 하니스")
-    ap.add_argument("--labels", default=str(ROOT / "data" / "eval_labels.csv"))
+    ap.add_argument("--labels", default=str(ROOT / "data" / "eval_labels_all.csv"))
     ap.add_argument("--dataset", default=None,
                     help="실측 대조 CSV(image,kcal[,food]) — 추정 칼로리 vs 실측 대조(MAPE·±%·상관). "
                          "Nutrition5k·SimpleFood45·한식 실측 등 무엇이든 이 하나로")
