@@ -214,11 +214,38 @@ class GeminiFoodAnalyzer:
         '"box":[<ymin>,<xmin>,<ymax>,<xmax>]}]'
     )
 
-    def __init__(self, model="gemini-3.5-flash", api_key=None, use_search=True, n_samples=1):
+    # (실험) 그램 앵커: 흔한 1인분 무게 감각을 줘서 절대 그램 추정의 편향을 줄인다.
+    _GRAM_ANCHOR = (
+        "\n\n## 참고: 흔한 1인분 무게 감각(절대 그램 가늠용)\n"
+        "밥 한 공기≈210g · 국/찌개 한 그릇≈350g · 면류(끓인 후) 한 그릇≈500g · "
+        "고기구이 1인분≈180g · 생선구이 한 토막≈120g · 김치/나물 한 접시≈50g · "
+        "치킨 한 조각≈70g · 계란 1개≈50g · 식빵 1장≈35g · 음료 한 잔≈350ml. "
+        "이 감각을 기준으로 사진에 실제 담긴 양을 조정해 추정하되, 실제로 많거나 적으면 그만큼 반영해라."
+    )
+    # (실험) 스케일 앵커: 사진 속 크기를 아는 물체로 실제 cm를 재서 그램을 가늠.
+    _SCALE_ANCHOR = (
+        "\n\n## 참고: 크기 기준물(실제 크기 측정용)\n"
+        "사진에 아래 물체가 보이면 '자'로 삼아 음식의 실제 크기(cm)를 먼저 가늠한 뒤 무게(g)를 추정해라: "
+        "숟가락 길이≈20cm · 젓가락≈23cm · 밥공기 지름≈11cm · 일반접시 지름≈23cm · "
+        "신용카드≈8.5cm · 500원 동전 지름≈2.65cm · 성인 손 한 뼘≈18cm."
+    )
+
+    def __init__(self, model="gemini-3.5-flash", api_key=None, use_search=True, n_samples=1,
+                 gram_anchor=False, scale_anchor=False):
         self.model = model
         self.use_search = use_search
         self.n_samples = max(1, n_samples)
+        self.gram_anchor = gram_anchor
+        self.scale_anchor = scale_anchor
         self.pool = GeminiPool(gemini_keys(api_key))
+
+    def _effective_prompt(self):
+        p = self.PROMPT
+        if self.gram_anchor:
+            p += self._GRAM_ANCHOR
+        if self.scale_anchor:
+            p += self._SCALE_ANCHOR
+        return p
 
     def _config(self, with_search):
         from google.genai import types
@@ -262,7 +289,7 @@ class GeminiFoodAnalyzer:
         for with_search in ([True, False] if self.use_search else [False]):
             try:
                 resp = self.pool.generate(
-                    model=self.model, contents=[img, self.PROMPT],
+                    model=self.model, contents=[img, self._effective_prompt()],
                     config=self._config(with_search))
                 got_response = True
                 payload = self._extract_json_array((resp.text or "").strip())
@@ -511,7 +538,7 @@ class FoodAIPipeline:
     def __init__(self, engine="gemini",
                  gemini_model="gemini-3.5-flash", use_search=True,
                  gemini_samples=1, plate_cm=None, gram_calib=None,
-                 holistic_multi=True):
+                 holistic_multi=True, gram_anchor=True, scale_anchor=False):
         self.engine = engine
         self.plate_cm = plate_cm
         # 그램 편향 보정계수(None이면 전역 기본 GRAM_CALIBRATION). 실측/재튜닝·해제용.
@@ -530,7 +557,8 @@ class FoodAIPipeline:
                 "로컬 모델은 제거되었습니다. '--engine gemini'를 사용하세요 "
                 "(분류·양·칼로리 모두 Gemini).")
         self.gemini_analyzer = GeminiFoodAnalyzer(
-            model=gemini_model, use_search=use_search, n_samples=gemini_samples)
+            model=gemini_model, use_search=use_search, n_samples=gemini_samples,
+            gram_anchor=gram_anchor, scale_anchor=scale_anchor)
 
     def analyze(self, image_path):
         return self.analyze_gemini(image_path)
@@ -756,6 +784,10 @@ def main():
                     help=f"그램 편향 보정계수(기본 {GRAM_CALIBRATION}). 1.0=보정끔. 실측 재튜닝용")
     ap.add_argument("--no-holistic-multi", action="store_true",
                     help="다중음식 홀리스틱 총칼로리(기본 켜짐)를 끄고 항목 합산으로")
+    ap.add_argument("--no-gram-anchor", action="store_true",
+                    help="프롬프트 그램 앵커(기본 켜짐: 흔한 1인분 무게 감각)를 끔")
+    ap.add_argument("--scale-anchor", action="store_true",
+                    help="(실험) 크기 기준물(cm) 스케일 앵커 주입 — 단품엔 효과 미확인")
     ap.add_argument("--json", action="store_true", help="JSON으로 출력")
     args = ap.parse_args()
 
@@ -773,7 +805,9 @@ def main():
                               use_search=not args.no_search,
                               gemini_samples=args.gemini_samples,
                               plate_cm=plate_cm, gram_calib=args.gram_calib,
-                              holistic_multi=not args.no_holistic_multi)
+                              holistic_multi=not args.no_holistic_multi,
+                              gram_anchor=not args.no_gram_anchor,
+                              scale_anchor=args.scale_anchor)
     except RuntimeError as ex:
         print(f"⚠ {ex}")
         print("  → Gemini 기능은 GEMINI_API_KEY 가 필요합니다 (환경변수 설정).")
