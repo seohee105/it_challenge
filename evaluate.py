@@ -154,19 +154,30 @@ def run_dataset_eval(pipe, rows):
     """추정 총칼로리 vs 실측 칼로리 대조: MAPE·±25%·±50%·상관계수(+정답 음식명 있으면 분류)."""
     import statistics
     pairs, cls_ok, cls_n, miss = [], 0, 0, []
+    # 실패를 조용히 삼키면 '몇 장 측정됐는지'만 보이고 왜 빠졌는지 알 수 없다 → 사유별 집계.
+    failed_api, no_food, missing_img = [], [], []
     print(f"{'파일':26s}{'실측':>7s}{'추정':>7s}{'오차%':>7s} 신뢰도")
     print("-" * 60)
     for r in rows:
+        name = Path(r["image"]).name
         if not Path(r["image"]).exists():
+            missing_img.append(name)
             print(f"  [이미지 없음] {r['image']}")
             continue
         try:
             res = pipe.analyze(r["image"])
         except Exception as ex:
-            print(f"  [오류] {Path(r['image']).name}: {ex}")
+            failed_api.append((name, str(ex)[:60]))
+            print(f"  [오류] {name}: {ex}")
+            continue
+        if res.get("error"):  # 호출 전부 실패(쿼터/503 등) — '음식 없음'과 구분
+            failed_api.append((name, str(res["error"])[:60]))
+            print(f"  ⚠ {name[:26]:26s} 호출실패(503/쿼터 등)")
             continue
         pcal = res.get("total_kcal") or 0
         if pcal <= 0:
+            no_food.append(name)
+            print(f"  · {name[:26]:26s} 음식 미검출")
             continue
         pairs.append((r["kcal"], pcal))
         err = (pcal - r["kcal"]) / r["kcal"] * 100
@@ -180,6 +191,11 @@ def run_dataset_eval(pipe, rows):
         print(f"  {Path(r['image']).name[:26]:26s}{r['kcal']:7.0f}{pcal:7.0f}{err:+7.0f}% {res.get('kcal_reliability')}")
     n = len(pairs)
     print("\n" + "=" * 60)
+    # 완주율 먼저 — 실패를 숨기면 '측정 N장'이 표본 편향인지 알 수 없다.
+    print(f"완주율(측정/전체) : {n}/{len(rows)}"
+          f"   [호출실패 {len(failed_api)} · 음식미검출 {len(no_food)} · 이미지없음 {len(missing_img)}]")
+    if failed_api:
+        print(f"  ⚠ 호출실패 {len(failed_api)}건 — 서버 503/쿼터일 수 있음(표본 편향 주의). 예: {failed_api[0][1]}")
     if not n:
         print("측정 0건")
         return
