@@ -1,0 +1,152 @@
+[gd_scene format=3 uid="uid://c40g4gsn505k3"]
+
+[ext_resource type="Script" uid="uid://cobn3cs6fde4j" path="res://scenes/CreateCharacterScene.gd" id="1_2dtn2"]
+[ext_resource type="Texture2D" uid="uid://ch1apjwspavjf" path="res://assets/ChatGPT Image 2026년 7월 17일 오전 01_16_37.png" id="2_q00n3"]
+
+[node name="CreateCharacterScene" type="Control" unique_id=819321427]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_2dtn2")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1376530194]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.11764706, 0.105882354, 0.22745098, 1)
+
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=1758677529]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TextureRect" type="TextureRect" parent="PanelContainer" unique_id=1898951687]
+layout_mode = 2
+texture = ExtResource("2_q00n3")
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer" unique_id=1611094769]
+layout_mode = 2
+theme_override_constants/margin_left = 120
+theme_override_constants/margin_top = 120
+theme_override_constants/margin_right = 80
+theme_override_constants/margin_bottom = 80
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer" unique_id=1050591777]
+layout_mode = 2
+theme_override_constants/separation = 45
+
+[node name="TitleLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer" unique_id=1393749422]
+layout_mode = 2
+theme_override_font_sizes/font_size = 60
+text = "탐험가 등록 "
+horizontal_alignment = 1
+
+[node name="NicknameHBox" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer" unique_id=252328176]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/NicknameHBox" unique_id=585523975]
+layout_mode = 2
+theme_override_font_sizes/font_size = 25
+text = "닉네임 "
+
+[node name="NicknameLineEdit" type="LineEdit" parent="PanelContainer/MarginContainer/VBoxContainer/NicknameHBox" unique_id=266484010]
+custom_minimum_size = Vector2(500, 60)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 25
+placeholder_text = "닉네임을 입력하세요 "
+
+[node name="GenderHBox" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer" unique_id=1416593208]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/GenderHBox" unique_id=1608245383]
+layout_mode = 2
+theme_override_font_sizes/font_size = 25
+text = "성별 "
+
+[node name="GenderOptionButton" type="OptionButton" parent="PanelContainer/MarginContainer/VBoxContainer/GenderHBox" unique_id=615518094]
+custom_minimum_size = Vector2(500, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 25
+item_count = 1
+popup/item_0/id = 0
+
+[node name="HeightHBox" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer" unique_id=1799062217]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HeightHBox" unique_id=2063212872]
+layout_mode = 2
+theme_override_font_sizes/font_size = 25
+text = "키(cm) 
+"
+
+[node name="HeightSpinBox" type="SpinBox" parent="PanelContainer/MarginContainer/VBoxContainer/HeightHBox" unique_id=1486424297]
+custom_minimum_size = Vector2(500, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 300.0
+alignment = 2
+
+[node name="WeightHBox" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer" unique_id=2095419450]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/WeightHBox" unique_id=452108607]
+layout_mode = 2
+theme_override_font_sizes/font_size = 25
+text = "몸무게(kg) "
+
+[node name="WeightSpinBox" type="SpinBox" parent="PanelContainer/MarginContainer/VBoxContainer/WeightHBox" unique_id=1291425481]
+custom_minimum_size = Vector2(500, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 400.0
+alignment = 2
+
+[node name="AgeHBox" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer" unique_id=1328422615]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/AgeHBox" unique_id=718756045]
+layout_mode = 2
+theme_override_font_sizes/font_size = 25
+text = "나이 "
+
+[node name="AgeSpinBox" type="SpinBox" parent="PanelContainer/MarginContainer/VBoxContainer/AgeHBox" unique_id=842181692]
+custom_minimum_size = Vector2(500, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 5.0
+max_value = 150.0
+value = 5.0
+alignment = 2
+
+[node name="StartButton" type="TextureButton" parent="." unique_id=1862640518]
+layout_mode = 0
+offset_left = 714.0
+offset_top = 818.0
+offset_right = 1178.0
+offset_bottom = 944.0
+
+[connection signal="mouse_entered" from="StartButton" to="." method="_on_start_button_mouse_entered"]
+[connection signal="mouse_exited" from="StartButton" to="." method="_on_start_button_mouse_exited"]
+[connection signal="pressed" from="StartButton" to="." method="_on_start_button_pressed"]

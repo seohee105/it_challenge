@@ -1,0 +1,45 @@
+[gd_scene format=3 uid="uid://b1xn08u45eor2"]
+
+[ext_resource type="Script" uid="uid://cqhld00nbw7fw" path="res://scenes/MainScene.gd" id="1_echbf"]
+[ext_resource type="Texture2D" uid="uid://cmbgf0m6d2c50" path="res://assets/MainScene.png" id="2_ibiss"]
+
+[node name="MainScene" type="Control" unique_id=630385457]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_echbf")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1950962158]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 8.999992
+offset_right = 129.93321
+offset_bottom = 192.19565
+scale = Vector2(15.46801, 5.7807055)
+
+[node name="Label" type="Label" parent="." unique_id=1895088587]
+layout_mode = 0
+offset_left = 680.0
+offset_top = 414.0
+offset_right = 1226.0
+offset_bottom = 552.0
+theme_override_font_sizes/font_size = 48
+text = "BELLY DUNGEON
+\"오늘도 던전을 정복하라\""
+horizontal_alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="." unique_id=1222693398]
+layout_mode = 0
+offset_right = 1924.0
+offset_bottom = 1084.0
+texture = ExtResource("2_ibiss")
+
+[node name="Button" type="TextureButton" parent="." unique_id=825918684]
+layout_mode = 0
+offset_left = 721.0
+offset_top = 762.0
+offset_right = 1219.0
+offset_bottom = 892.0
+
+[connection signal="pressed" from="Button" to="." method="_on_button_pressed"]

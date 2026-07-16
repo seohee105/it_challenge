@@ -1,0 +1,50 @@
+[gd_scene format=3 uid="uid://bykwnkd8ok6no"]
+
+[ext_resource type="Script" uid="uid://batlq2x22r3c6" path="res://scenes/LoginScene.gd" id="1_jved0"]
+[ext_resource type="Texture2D" uid="uid://d08fvj1emp4rq" path="res://assets/LoginScene.png" id="2_8t32u"]
+
+[node name="LoginScene" type="Control" unique_id=104285277]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_jved0")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=648214124]
+custom_minimum_size = Vector2(1024, 1000)
+layout_mode = 1
+offset_left = -5.0
+offset_top = 20.0
+offset_right = 1910.0
+offset_bottom = 1083.0
+
+[node name="TextureRect" type="TextureRect" parent="." unique_id=803350817]
+layout_mode = 0
+offset_right = 1917.0
+offset_bottom = 1101.0
+texture = ExtResource("2_8t32u")
+
+[node name="LoginButton" type="TextureButton" parent="." unique_id=382251147]
+layout_mode = 0
+offset_left = 655.0
+offset_top = 620.0
+offset_right = 1252.0
+offset_bottom = 751.0
+
+[node name="NicknameLineEdit" type="LineEdit" parent="." unique_id=1167025108]
+layout_mode = 0
+offset_left = 581.0
+offset_top = 459.0
+offset_right = 1323.0
+offset_bottom = 585.0
+theme_override_font_sizes/font_size = 40
+placeholder_text = "닉네임을 입력하세요 "
+alignment = 1
+
+[node name="CreateButton" type="TextureButton" parent="." unique_id=236128394]
+layout_mode = 0
+offset_left = 666.0
+offset_top = 785.0
+offset_right = 1257.0
+offset_bottom = 906.0
+
+[connection signal="pressed" from="LoginButton" to="." method="_on_login_button_pressed"]
+[connection signal="pressed" from="CreateButton" to="." method="_on_create_button_pressed"]

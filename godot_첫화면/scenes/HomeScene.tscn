@@ -1,0 +1,40 @@
+[gd_scene format=3 uid="uid://basers0h4qpye"]
+
+[ext_resource type="Script" uid="uid://b7nyfsewxdrxv" path="res://scenes/HomeScene.gd" id="1_1n5op"]
+[ext_resource type="Texture2D" uid="uid://bf81g5hg0tytw" path="res://assets/배경.png" id="2_ukex0"]
+
+[node name="HomeScene" type="Control" unique_id=1925607357]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_1n5op")
+
+[node name="TextureRect" type="TextureRect" parent="." unique_id=356584070]
+layout_mode = 0
+offset_left = -5.0
+offset_top = 5.0
+offset_right = 1948.0
+offset_bottom = 1109.0
+texture = ExtResource("2_ukex0")
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=858354606]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=265710494]
+layout_mode = 2
+
+[node name="NicknameLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1810419031]
+layout_mode = 2
+theme_override_font_sizes/font_size = 25
+text = "닉네임 "
+
+[node name="DayLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=8762453]
+layout_mode = 2
+theme_override_font_sizes/font_size = 25
+text = "DAY "
+
+[node name="CoinLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=2136699928]
+layout_mode = 2
+theme_override_font_sizes/font_size = 25
+text = "코인 "
