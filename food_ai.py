@@ -245,12 +245,16 @@ class GeminiFoodAnalyzer:
     )
 
     def __init__(self, model="gemini-3.5-flash", api_key=None, use_search=True, n_samples=1,
-                 gram_anchor=False, scale_anchor=False):
+                 gram_anchor=False, scale_anchor=False, thinking_budget=None):
         self.model = model
         self.use_search = use_search
         self.n_samples = max(1, n_samples)
         self.gram_anchor = gram_anchor
         self.scale_anchor = scale_anchor
+        # 내부 추론(thinking) 토큰 예산. None=모델 기본(동적, 실측 ~1100토큰).
+        # 낮게 주면 추론량이 줄어 비용↓(thinking은 출력단가로 과금). 0=완전히 끔.
+        # ※ 0으로 끄면 프롬프트 규칙을 놓쳐 품질이 떨어짐(실측: 파전→'부침개'로 퇴화).
+        self.thinking_budget = thinking_budget
         self.pool = GeminiPool(gemini_keys(api_key))
 
     def _effective_prompt(self):
@@ -269,6 +273,8 @@ class GeminiFoodAnalyzer:
         kwargs = {"temperature": temp}
         if with_search:
             kwargs["tools"] = [types.Tool(google_search=types.GoogleSearch())]
+        if self.thinking_budget is not None:
+            kwargs["thinking_config"] = types.ThinkingConfig(thinking_budget=self.thinking_budget)
         return types.GenerateContentConfig(**kwargs)
 
     @staticmethod
@@ -558,7 +564,8 @@ class FoodAIPipeline:
     def __init__(self, engine="gemini",
                  gemini_model="gemini-3.5-flash", use_search=True,
                  gemini_samples=1, plate_cm=None, gram_calib=None,
-                 holistic_multi=True, gram_anchor=True, scale_anchor=False):
+                 holistic_multi=True, gram_anchor=True, scale_anchor=False,
+                 thinking_budget=128):
         self.engine = engine
         self.plate_cm = plate_cm
         # 그램 편향 보정계수(None이면 전역 기본 GRAM_CALIBRATION). 실측/재튜닝·해제용.
@@ -578,7 +585,8 @@ class FoodAIPipeline:
                 "(분류·양·칼로리 모두 Gemini).")
         self.gemini_analyzer = GeminiFoodAnalyzer(
             model=gemini_model, use_search=use_search, n_samples=gemini_samples,
-            gram_anchor=gram_anchor, scale_anchor=scale_anchor)
+            gram_anchor=gram_anchor, scale_anchor=scale_anchor,
+            thinking_budget=thinking_budget)
 
     def analyze(self, image_path):
         return self.analyze_gemini(image_path)
@@ -830,6 +838,10 @@ def main():
                     help="프롬프트 그램 앵커(기본 켜짐: 흔한 1인분 무게 감각)를 끔")
     ap.add_argument("--scale-anchor", action="store_true",
                     help="(실험) 크기 기준물(cm) 스케일 앵커 주입 — 단품엔 효과 미확인")
+    ap.add_argument("--thinking-budget", type=int, default=128,
+                    help="내부 추론(thinking) 토큰 예산(기본 128). 실측상 128이면 추론이 ~375토큰으로 "
+                         "줄어 모델 동적(~1100) 대비 품질 동등·출력토큰 약 58%% 절감. "
+                         "0은 프롬프트 규칙을 놓쳐 품질 저하(비권장)")
     ap.add_argument("--json", action="store_true", help="JSON으로 출력")
     args = ap.parse_args()
 
@@ -849,7 +861,8 @@ def main():
                               plate_cm=plate_cm, gram_calib=args.gram_calib,
                               holistic_multi=not args.no_holistic_multi,
                               gram_anchor=not args.no_gram_anchor,
-                              scale_anchor=args.scale_anchor)
+                              scale_anchor=args.scale_anchor,
+                              thinking_budget=args.thinking_budget)
     except RuntimeError as ex:
         print(f"⚠ {ex}")
         print("  → Gemini 기능은 GEMINI_API_KEY 가 필요합니다 (환경변수 설정).")

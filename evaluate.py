@@ -238,6 +238,8 @@ def main():
                     help="프롬프트 그램 앵커(기본 켜짐)를 끔")
     ap.add_argument("--scale-anchor", action="store_true",
                     help="(실험) 크기 기준물(cm) 스케일 앵커 주입")
+    ap.add_argument("--thinking-budget", type=int, default=128,
+                    help="thinking 토큰 예산(기본 128 — 품질 동등·비용 58%% 절감). 낮을수록 저렴")
     args = ap.parse_args()
 
     # 실측 대조 모드: 어떤 데이터셋이든 CSV 하나로 칼로리 정확도 측정(임시 스크립트 불필요)
@@ -252,7 +254,8 @@ def main():
             gemini_model=args.gemini_model, use_search=not args.no_search,
             gemini_samples=args.gemini_samples, gram_calib=args.gram_calib,
             holistic_multi=not args.no_holistic_multi,
-            gram_anchor=not args.no_gram_anchor, scale_anchor=args.scale_anchor)
+            gram_anchor=not args.no_gram_anchor, scale_anchor=args.scale_anchor,
+            thinking_budget=args.thinking_budget)
         run_dataset_eval(pipe, rows)
         return
 
