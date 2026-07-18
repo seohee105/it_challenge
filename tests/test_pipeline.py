@@ -92,6 +92,63 @@ class TestNutritionLabel(unittest.TestCase):
         self.assertTrue(d["from_label"])
         self.assertEqual(r["kcal_reliability"], "높음")  # 라벨은 신뢰 높음
 
+    def test_label_overrides_db_match(self):
+        """DB에 있는 음식이어도 from_label이면 라벨값을 쓴다(순환·오차 방지)."""
+        db_name = food_ai.NutritionDB().match("비빔밥")
+        r = run([food(db_name, grams=100, kcal=180, from_label=True)])
+        self.assertEqual(r["detections"][0]["kcal"], 180)          # DB(639)가 아니라 라벨(180)
+        self.assertEqual(r["detections"][0]["kcal_source"], "영양성분표(라벨)")
+
+    def test_no_label_falls_back(self):
+        """라벨 없으면 from_label=False, 기존 추정 경로."""
+        r = run([food("존재안함zzz", grams=100, kper=300, from_label=False)])
+        d = r["detections"][0]
+        self.assertFalse(d["from_label"])
+        self.assertNotEqual(d["kcal_source"], "영양성분표(라벨)")
+
+    def test_holistic_preserves_label_value(self):
+        """다중음식 홀리스틱 재조정 시 라벨 항목 값은 보존(나머지만 스케일)."""
+        db1 = food_ai.NutritionDB().match("비빔밥")
+        r = run([food("단백질바", grams=100, kcal=200, from_label=True),
+                 food(db1, grams=300)], total=900.0, holistic_multi=True)
+        lab = next(d for d in r["detections"] if d["from_label"])
+        self.assertEqual(lab["kcal"], 200)      # 홀리스틱이 라벨값을 훼손하지 않음
+
+
+class TestAnchorAndThinkingWiring(unittest.TestCase):
+    """프롬프트 앵커·thinking 예산이 config/프롬프트에 실제로 반영되는지(배선 회귀)."""
+    def _analyzer(self, **kw):
+        a = food_ai.GeminiFoodAnalyzer.__new__(food_ai.GeminiFoodAnalyzer)
+        a.gram_anchor = kw.get("gram_anchor", False)
+        a.scale_anchor = kw.get("scale_anchor", False)
+        a.n_samples = 1
+        a.thinking_budget = kw.get("thinking_budget", None)
+        return a
+
+    def test_gram_anchor_bicuisine_in_prompt(self):
+        a = self._analyzer(gram_anchor=True)
+        p = a._effective_prompt()
+        self.assertIn("[한식]", p)
+        self.assertIn("[양식]", p)   # bi-cuisine: 양쪽 포션 포함
+
+    def test_gram_anchor_off_no_anchor(self):
+        self.assertNotIn("1인분 무게 감각", self._analyzer(gram_anchor=False)._effective_prompt())
+
+    def test_thinking_budget_in_config(self):
+        cfg = self._analyzer(thinking_budget=128)._config(False)
+        self.assertIsNotNone(getattr(cfg, "thinking_config", None))
+        self.assertEqual(cfg.thinking_config.thinking_budget, 128)
+
+    def test_thinking_budget_none_omits_config(self):
+        cfg = self._analyzer(thinking_budget=None)._config(False)
+        self.assertIsNone(getattr(cfg, "thinking_config", None))
+
+    def test_pipeline_default_thinking_budget(self):
+        """파이프라인 기본이 128로 analyzer까지 전달되는지."""
+        food_ai.gemini_keys = lambda *a, **k: ["test-dummy-key"]
+        p = food_ai.FoodAIPipeline()
+        self.assertEqual(p.gemini_analyzer.thinking_budget, 128)
+
 
 @unittest.skipIf(TEST_IMG is None, "테스트 이미지 없음")
 class TestHolistic(unittest.TestCase):
