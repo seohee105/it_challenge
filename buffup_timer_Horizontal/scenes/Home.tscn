@@ -1,0 +1,94 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/Home.gd" id="1"]
+
+[node name="Home" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = -24.0
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "버프업 다이어트 - 운동 타이머"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="ItemContainer" type="VBoxContainer" parent="VBox/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="BottomBar" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="TodayCalLabel" type="Label" parent="VBox/BottomBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+theme_override_font_sizes/font_size = 16
+text = "오늘의 총 소모 칼로리량: 0.0 kcal"
+horizontal_alignment = 1
+
+[node name="AddButton" type="Button" parent="VBox/BottomBar"]
+layout_mode = 2
+custom_minimum_size = Vector2(150, 48)
+text = "+ 운동 추가"
+
+[node name="EditDeleteButton" type="Button" parent="VBox/BottomBar"]
+layout_mode = 2
+custom_minimum_size = Vector2(140, 48)
+text = "수정/삭제"
+
+[node name="SideActions" type="Panel" parent="."]
+layout_mode = 3
+anchor_left = 0.5
+anchor_right = 1.0
+anchor_top = 0.0
+anchor_bottom = 1.0
+visible = false
+
+[node name="VBox" type="VBoxContainer" parent="SideActions"]
+layout_mode = 1
+anchors_preset = 15
+offset_left = 12.0
+offset_top = 12.0
+offset_right = -12.0
+offset_bottom = -12.0
+
+[node name="DeleteButton" type="Button" parent="SideActions/VBox"]
+text = "삭제"
+
+[node name="EditButton" type="Button" parent="SideActions/VBox"]
+text = "수정"
+
+[node name="EditLine" type="LineEdit" parent="SideActions/VBox"]
+placeholder_text = "새 운동 이름 입력"
+visible = false
+
+[node name="SaveEditButton" type="Button" parent="SideActions/VBox"]
+text = "저장"
+visible = false
+
+[node name="CancelEditButton" type="Button" parent="SideActions/VBox"]
+text = "취소"
+visible = false
