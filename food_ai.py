@@ -1,23 +1,21 @@
 # -*- coding: utf-8 -*-
 """
-음식 분류 + 양 추정 + 칼로리 통합 파이프라인 (Gemini 전문가 엔진)
+음식 분류 + 양(그램) 추정 + 칼로리 통합 파이프라인 (Gemini 전문가 엔진)
 ================================================================
 사진 ─▶ ① 음식 분류 (Gemini Vision, 멀티음식/검색 그라운딩)
-      └▶ ② 양 추정   (Gemini 기본 / ResNet Q1~Q5 / 접시기준 면적)
+      └▶ ② 양 추정   (Gemini 그램 추정 / 접시기준 면적)
                           └▶ ③ 영양DB 조회 ─▶ 칼로리/탄단지 계산
 
 [모델]
-- ① 음식분류 : Gemini(gemini-2.5-flash). ※로컬 YOLOv3 분류기는 제거됨
-- ② 양추정   : Gemini 기본. '--quantity resnet'이면 models/quantity(ResNet, Q1~Q5)로 재추정
+- ① 음식분류 : Gemini(gemini-3.5-flash). ※로컬 YOLOv3 분류기는 제거됨
+- ② 양추정   : Gemini가 사진 속 '실제 무게(그램)'를 추정 → DB 밀도로 칼로리 환산.
+               (실측 대조상 Q1~Q5 상대비율 방식보다 우수해 그램 단일화. ResNet 양추정기 제거됨)
 - ③ 영양DB   : data/nutrition_db_merged.csv (없으면 nutrition_db.xlsx)
 
-[실행]  (ResNet 사용 시 전용 가상환경 .venv311 권장 / Gemini는 GEMINI_API_KEY 필요)
+[실행]  (Gemini는 GEMINI_API_KEY 필요)
   python food_ai.py --image 사진.jpg                    # 기본(분류·양·칼로리 모두 Gemini)
-  python food_ai.py --image 사진.jpg --quantity resnet  # 양만 로컬 ResNet
   python food_ai.py --image 사진.jpg --plate-cm 24      # 접시 지름 주면 면적기반 양추정
   python food_ai.py --image 사진.jpg --json             # JSON 출력
-
-[양(Q) → 1인분 대비 비율]  Q1 25% · Q2 50% · Q3 75% · Q4 100%(기준) · Q5 125%
 """
 import os
 import sys
@@ -29,37 +27,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-# torch는 로컬 모델(YOLOv3 분류·ResNet 양추정)에만 필요.
-# import 실패(DLL 문제 등) 시에도 Gemini 전용 경로(--engine gemini 등)는 동작하도록 지연 처리.
-try:
-    import torch
-    import torch.nn.functional as F
-    _TORCH_ERR = None
-except Exception as _e0:  # noqa: BLE001
-    # Windows에서 torch가 자체 DLL 디렉터리(torch/lib)를 못 잡는 경우 → 수동 추가 후 재시도
-    try:
-        import importlib.util
-        _spec = importlib.util.find_spec("torch")
-        _libdir = (os.path.join(_spec.submodule_search_locations[0], "lib")
-                   if _spec and _spec.submodule_search_locations else None)
-        if _libdir and os.path.isdir(_libdir) and hasattr(os, "add_dll_directory"):
-            os.add_dll_directory(_libdir)
-        import torch
-        import torch.nn.functional as F
-        _TORCH_ERR = None
-    except Exception as _e:  # noqa: BLE001
-        torch = None
-        F = None
-        _TORCH_ERR = _e
-
-
-def _require_torch():
-    if torch is None:
-        raise RuntimeError(f"PyTorch 로드 실패로 로컬 모델을 쓸 수 없습니다: {_TORCH_ERR}. "
-                           "Gemini 전용 경로(--engine gemini)만 사용하거나 torch를 복구하세요.")
-
 ROOT = Path(__file__).parent
-QUANTITY_DIR = ROOT / "models" / "quantity"
 
 try:
     sys.stdout.reconfigure(encoding="utf-8")
@@ -67,17 +35,16 @@ except Exception:
     pass
 
 # ---- 설정 -----------------------------------------------------------------
-# (음식분류 YOLOv3 모델은 제거됨 — 분류는 Gemini 엔진이 담당)
-QTY_WEIGHTS = QUANTITY_DIR / "weights" / "new_opencv_ckpt_b84_e200.pth"
+# (음식분류 YOLOv3·양추정 ResNet 모델은 제거됨 — 분류·양 모두 Gemini 엔진이 담당)
 DB_PATH = ROOT / "data" / "nutrition_db.xlsx"
 MERGED_DB = ROOT / "data" / "nutrition_db_merged.csv"
 
-Q_RATIO = {"Q1": 0.25, "Q2": 0.5, "Q3": 0.75, "Q4": 1.0, "Q5": 1.25}
-Q_LABEL = {"Q1": "아주 적음", "Q2": "적음", "Q3": "보통", "Q4": "기준(1인분)", "Q5": "많음"}
-IDX_TO_Q = {0: "Q1", 1: "Q2", 2: "Q3", 3: "Q4", 4: "Q5"}
-
-IMAGENET_MEAN = [0.485, 0.456, 0.406]
-IMAGENET_STD = [0.229, 0.224, 0.225]
+# Gemini 그램(양) 추정 편향 보정계수. 실측 대조(SimpleFood45·Nutrition5k, 3.5-flash)에서
+# 정상분량이 일관되게 +12~16% 과다추정(추정/실측 중앙값 1.12) → 0.88을 곱해 보정.
+# 검증셋 정상분량(≥30kcal, 16장) MAPE 18→14%, ±25% 75→88%. 여러 모델·데이터셋에서
+# 편향 방향이 일치해 전역 적용. 한계: 서양·혼합접시 실측 기반이라 한식 실측 확보 시
+# 재튜닝 권장. 1.0=보정 없음. --gram-calib 로 오버라이드 가능.
+GRAM_CALIBRATION = 0.88
 
 
 def num(v):
@@ -85,18 +52,6 @@ def num(v):
         return float(v)
     except (TypeError, ValueError):
         return 0.0
-
-
-def probs_to_percent(probs):
-    """Q확률 분포 {Q1:..,..} → 기대 비율(%) (Σ p_i * 단계비율 * 100)."""
-    r = sum(probs.get(q, 0.0) * Q_RATIO[q] for q in Q_RATIO)
-    return r * 100.0
-
-
-def percent_to_q(percent):
-    """비율(%) → 가장 가까운 Q단계."""
-    ratio = percent / 100.0
-    return min(Q_RATIO, key=lambda q: abs(Q_RATIO[q] - ratio))
 
 
 KEY_FILE = ROOT / ".gemini_key"  # 로컬 키 저장 파일(한 줄에 키 하나). git 커밋 금지.
@@ -130,8 +85,10 @@ def gemini_keys(primary=None):
 
 
 def _is_quota_error(ex):
-    s = str(ex)
-    return "429" in s or "RESOURCE_EXHAUSTED" in s or "quota" in s.lower()
+    """재시도/키전환 대상인 일시적 오류(쿼터 429 + 서버 과부하 503)."""
+    s = str(ex).lower()
+    return ("429" in s or "resource_exhausted" in s or "quota" in s
+            or "503" in s or "unavailable" in s or "overload" in s)
 
 
 class RateLimiter:
@@ -205,39 +162,10 @@ def imread_unicode(path):
     return cv2.imdecode(data, cv2.IMREAD_COLOR)
 
 
-# ---- ② 양 추정 (ResNet) ---------------------------------------------------
-class QuantityEstimator:
-    def __init__(self, weights=QTY_WEIGHTS, device="cpu"):
-        _require_torch()
-        from torchvision import transforms
-        self.device = torch.device(device)
-        ckpt = torch.load(str(weights), map_location="cpu", weights_only=False)
-        self.model = ckpt["model_ft"]
-        self.model.load_state_dict(ckpt["state_dict"], strict=False)
-        self.model.to(self.device).eval()
-        self.class_to_idx = ckpt.get("class_to_idx", {"Q1": 0, "Q2": 1, "Q3": 2, "Q4": 3, "Q5": 4})
-        self.idx_to_class = {v: k for k, v in self.class_to_idx.items()}
-        self.tf = transforms.Compose([
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
-            transforms.ToTensor(),
-            transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD),
-        ])
-
-    def estimate(self, pil_img):
-        """PIL 이미지(RGB) → (Q문자열, 확률, {Q:확률})"""
-        x = self.tf(pil_img.convert("RGB")).unsqueeze(0).to(self.device)
-        with torch.no_grad():
-            ps = F.softmax(self.model(x), dim=1).cpu().squeeze(0)
-        top = int(ps.argmax())
-        probs = {self.idx_to_class.get(i, f"c{i}"): float(ps[i]) for i in range(len(ps))}
-        return self.idx_to_class.get(top, IDX_TO_Q.get(top, "Q4")), float(ps[top]), probs
-
-
 # ---- Gemini 음식 칼로리 분석 전문가 (멀티 음식 + 검색 그라운딩) -----------
 class GeminiFoodAnalyzer:
     """음식 사진을 분석하는 '음식 칼로리 분석 전문가'.
-    한 사진의 여러 음식을 각각 {food, q, q_reason, kcal_estimate} 로 반환한다.
+    한 사진의 여러 음식을 각각 {food, grams, amount_reason, kcal_estimate} 로 반환한다.
     DB에 없는 음식은 Google 검색 그라운딩으로 1인분 기준 자료를 찾아 칼로리를 추정한다."""
 
     PROMPT = (
@@ -254,39 +182,94 @@ class GeminiFoodAnalyzer:
         "예: 꼬리곰탕(X)→곰탕(O), 소불고기(X)→불고기(O), 물냉면(X)→냉면(O), "
         "배추김치/포기김치(X)→김치(O), 연어덮밥(X)→회덮밥(O). "
         "단, 종류가 뚜렷한 요리는 종류까지(예: 찌개→김치찌개, 전→감자전).\n"
+        "- **색·모양이 비슷한 음료·음식은 주재료로 구분해라(칼로리가 크게 다르다).** "
+        "예: 붉은갈색 전통음료 — 수정과(계피·생강, 진한 갈색·묵직)와 오미자차(오미자, 붉고 맑음·신맛)를 구분, "
+        "식혜(밥알)와도 구분. 커피류도 우유 유무로 구분(아메리카노 vs 라떼).\n"
+        "- **붉은 양념 볶음/탕은 '고기 종류'를 반드시 구분해라(닭/돼지/소는 칼로리가 크게 다르다).** "
+        "판별 순서: ①국물이 자작~많으면 '탕/볶음탕'(닭볶음탕·감자탕), 국물 거의 없이 볶으면 '볶음'. "
+        "②고기 모양 — **닭은 뼈 붙은 큰 덩어리·닭다리 형태**(닭갈비·닭볶음탕), **돼지는 얇게 저민 삼겹/앞다리살**(제육볶음). "
+        "③부재료 — 닭갈비=양배추·떡·고구마, 제육볶음=양파·대파 위주. "
+        "**뼈나 큰 고기덩어리가 보이면 절대 제육볶음이 아니다(제육은 얇은 저민살).** 확실치 않아도 고기 종류를 추정해 명시해라.\n"
+        "- **곱창·대창 등 내장 요리를 밀가루/면(수제비·칼국수)으로 착각하지 마라.** "
+        "곱창전골은 주름진 관 모양의 곱창(내장)이 핵심이고 국물·채소와 함께 끓인다.\n"
+        "- **죽·탕 등 속재료가 잠긴 요리는 주재료로 이름을 정해라.** "
+        "닭죽(닭살 결·닭기름), 전복죽(전복), 야채죽(채소만)처럼 안에 든 주재료를 보고 구분.\n"
         "- **한 그릇에 재료가 조합된 '단일 요리'는 재료로 쪼개지 말고 그 요리 하나로 인식해라.** "
         "예: 밥+연어+아보카도+양파+날치알이 한 그릇이면 → '연어 포케볼' 하나. "
         "비빔밥·덮밥·김밥·볶음밥·샐러드·파스타 등도 마찬가지로 하나로.\n"
         "- **반대로, 칸이나 접시로 물리적으로 나뉘어 따로 담긴 음식들은 각각 따로 분석해라.** "
         "예: 급식판·한상차림처럼 밥·국·반찬이 칸마다 있으면 칸별로 각각.\n\n"
-        "## 2. 양 (q) — 이 음식의 \"1인분(100%)\" 기준 대비 얼마인지\n"
-        "- Q1=아주 적음(약25%), Q2=적음(약50%), Q3=보통(약75%), "
-        "Q4=1인분(100%), Q5=많음(약125%, 수북/곱빼기)\n"
+        "## 2. 양 (grams) — 사진에 실제로 담긴 '무게(그램)'\n"
+        "- **표준 1인분을 가정하지 말고, 사진에 실제로 담긴 양의 무게(g)를 사실적으로 추정**해라. "
+        "작으면 작게, 크면 크게.\n"
         "- **사진 속 크기를 아는 물체(수저·젓가락·접시 테두리·손)를 '자'로 삼아 실제 크기를 가늠**해라.\n"
         "- **국·탕·찌개는 그릇 깊이(국물이 찬 높이)까지 고려**해라(윗넓이만 보지 말 것).\n"
-        "- 그 음식의 '평범한 1인분'과 비교해 정해. 낱개 세기보다 전체 양으로 판단.\n"
-        "- **식당·가정에서 흔히 나오는 정상 서빙은 대개 Q4(1인분)다. 눈에 띄게 수북하거나 "
-        "곱빼기일 때만 Q5로 올려라(함부로 Q5 남발 금지).**\n\n"
+        "- 낱개 세기보다 전체 양으로 판단. 식당·가정의 흔한 정상 서빙 무게를 감안하되, "
+        "실제로 수북하거나 적으면 그만큼 반영해라.\n\n"
         "## 3. 영양 추정 (칼로리 + 탄단지)\n"
         "- 사진에 보이는 양 기준의 대략적인 **총 칼로리(kcal)와 탄수화물(g)·단백질(g)·지방(g)**을 추정해.\n"
-        "- 신뢰할 수 있는 '1인분 기준' 영양 자료를 근거로 추정하고, "
-        "DB에 없는 생소한 음식이면 검색해서 표준 1인분 영양성분을 찾아 그 자료를 근거로 계산해.\n"
+        "- **그리고 이 음식의 '100g당 칼로리(kcal_per_100g)'도 추정해라** — 음식 자체의 열량밀도"
+        "(예: 삼겹살구이 약 330, 밥 약 150, 국물류 약 40).\n"
+        "- 신뢰할 수 있는 자료를 근거로 추정하고, DB에 없는 음식이면 검색해서 표준 영양성분으로 계산해.\n"
         "- 숫자만(단위 제외), 대략치라도 반드시 채워라.\n\n"
+        "## 3.5 영양성분표(라벨)가 보이면 — 눈대중 말고 표를 읽어라\n"
+        "- 포장 식품(편의점 도시락·과자·음료·단백질바 등)이고 **영양성분표가 사진에서 판독 가능하면**, "
+        "추정하지 말고 **표에 적힌 값을 그대로 읽어** kcal_estimate·carb_g·protein_g·fat_g에 넣고 "
+        "**from_label을 true**로 표시해라.\n"
+        "- 표의 기준을 반영해라: '총 내용량 기준' 값이 있으면 그걸, '1회 제공량(1회분) 기준'뿐이고 "
+        "사진에 여러 회분이 보이면 회분 수만큼 곱해라. grams에는 실제 섭취량(g/ml)을 넣어라.\n"
+        "- 표가 안 보이거나 읽을 수 없으면 from_label=false로 두고 기존처럼 추정해라.\n\n"
         "## 4. 위치 (box)\n"
         "- 각 음식이 사진에서 차지하는 영역을 **0~1000 정규화 바운딩박스 [ymin,xmin,ymax,xmax]**로 표시해.\n\n"
         "## 출력 형식 — 반드시 아래 JSON 배열만, 다른 말은 절대 하지 마. "
         "음식이 하나여도 원소 1개짜리 배열로 출력해:\n"
-        '[{"food":"<음식 이름>","q":"<Q1~Q5 중 하나>",'
-        '"q_reason":"<양을 그렇게 판단한 짧은 이유>",'
-        '"kcal_estimate":<숫자>,"carb_g":<숫자>,"protein_g":<숫자>,"fat_g":<숫자>,'
+        '[{"food":"<음식 이름>","grams":<실제 무게 숫자>,'
+        '"amount_reason":"<무게를 그렇게 판단한 짧은 이유>",'
+        '"kcal_estimate":<숫자>,"kcal_per_100g":<숫자>,'
+        '"carb_g":<숫자>,"protein_g":<숫자>,"fat_g":<숫자>,'
+        '"from_label":<true 또는 false>,'
         '"box":[<ymin>,<xmin>,<ymax>,<xmax>]}]'
     )
 
-    def __init__(self, model="gemini-2.5-flash", api_key=None, use_search=True, n_samples=3):
+    # (실험) 그램 앵커: 흔한 1인분 무게 감각을 줘서 절대 그램 추정의 편향을 줄인다.
+    # 한식·양식 둘 다 커버(타깃 사용자는 두 음식군을 모두 섭취) — 포션 감각은 문화마다 달라 양쪽 필요.
+    _GRAM_ANCHOR = (
+        "\n\n## 참고: 흔한 1인분 무게 감각(절대 그램 가늠용)\n"
+        "[한식] 밥 한 공기≈210g · 국/찌개 한 그릇≈350g · 면류(끓인 후) 한 그릇≈500g · "
+        "고기구이 1인분≈180g · 생선구이 한 토막≈120g · 김치/나물 한 접시≈50g · 치킨 한 조각≈70g.\n"
+        "[양식] 피자 한 조각≈120g · 햄버거≈250g · 파스타 1인분≈300g · 샐러드 한 접시≈150g · "
+        "스테이크≈200g · 감자튀김 1인분≈115g · 베이글≈90g · 크루아상≈50g · 샌드위치≈200g.\n"
+        "[공통] 계란 1개≈50g · 식빵 1장≈35g · 음료 한 잔≈350ml · 과일 한 개≈150g.\n"
+        "이 감각을 기준으로 사진에 실제 담긴 양을 조정해 추정하되, 실제로 많거나 적으면 그만큼 반영해라."
+    )
+    # (실험) 스케일 앵커: 사진 속 크기를 아는 물체로 실제 cm를 재서 그램을 가늠.
+    _SCALE_ANCHOR = (
+        "\n\n## 참고: 크기 기준물(실제 크기 측정용)\n"
+        "사진에 아래 물체가 보이면 '자'로 삼아 음식의 실제 크기(cm)를 먼저 가늠한 뒤 무게(g)를 추정해라: "
+        "숟가락 길이≈20cm · 젓가락≈23cm · 밥공기 지름≈11cm · 일반접시 지름≈23cm · "
+        "신용카드≈8.5cm · 500원 동전 지름≈2.65cm · 성인 손 한 뼘≈18cm."
+    )
+
+    def __init__(self, model="gemini-3.5-flash", api_key=None, use_search=True, n_samples=1,
+                 gram_anchor=False, scale_anchor=False, thinking_budget=None):
         self.model = model
         self.use_search = use_search
         self.n_samples = max(1, n_samples)
+        self.gram_anchor = gram_anchor
+        self.scale_anchor = scale_anchor
+        # 내부 추론(thinking) 토큰 예산. None=모델 기본(동적, 실측 ~1100토큰).
+        # 낮게 주면 추론량이 줄어 비용↓(thinking은 출력단가로 과금). 0=완전히 끔.
+        # ※ 0으로 끄면 프롬프트 규칙을 놓쳐 품질이 떨어짐(실측: 파전→'부침개'로 퇴화).
+        self.thinking_budget = thinking_budget
         self.pool = GeminiPool(gemini_keys(api_key))
+
+    def _effective_prompt(self):
+        p = self.PROMPT
+        if self.gram_anchor:
+            p += self._GRAM_ANCHOR
+        if self.scale_anchor:
+            p += self._SCALE_ANCHOR
+        return p
 
     def _config(self, with_search):
         from google.genai import types
@@ -296,6 +279,8 @@ class GeminiFoodAnalyzer:
         kwargs = {"temperature": temp}
         if with_search:
             kwargs["tools"] = [types.Tool(google_search=types.GoogleSearch())]
+        if self.thinking_budget is not None:
+            kwargs["thinking_config"] = types.ThinkingConfig(thinking_budget=self.thinking_budget)
         return types.GenerateContentConfig(**kwargs)
 
     @staticmethod
@@ -326,11 +311,13 @@ class GeminiFoodAnalyzer:
         return None
 
     def _analyze_once(self, img):
+        err, got_response, items = None, False, None
         for with_search in ([True, False] if self.use_search else [False]):
             try:
                 resp = self.pool.generate(
-                    model=self.model, contents=[img, self.PROMPT],
+                    model=self.model, contents=[img, self._effective_prompt()],
                     config=self._config(with_search))
+                got_response = True
                 payload = self._extract_json_array((resp.text or "").strip())
                 if payload:
                     try:
@@ -340,32 +327,50 @@ class GeminiFoodAnalyzer:
                     except json.JSONDecodeError:
                         pass
                 items = None
-            except Exception:
-                items = None
+            except Exception as ex:  # 호출 자체 실패(쿼터/네트워크/503 등)
+                err = ex
         if not items:
+            # 한 번도 응답을 못 받았고 예외만 있었다면 '음식 없음'이 아니라 호출 실패 →
+            # 상위에서 사용자에게 실패를 알릴 수 있게 전파(빈 결과로 삼키지 않음).
+            if not got_response and err is not None:
+                raise err
             return []
         out = []
         for it in items:
-            q = str(it.get("q", "Q4")).upper()
-            if q not in Q_RATIO:
-                q = "Q4"
             box = it.get("box")
             if not (isinstance(box, (list, tuple)) and len(box) == 4):
                 box = None
-            out.append({"food": str(it.get("food", "")).strip(), "q": q,
-                        "q_reason": it.get("q_reason"), "kcal_estimate": it.get("kcal_estimate"),
+            try:
+                grams = float(it.get("grams")) if it.get("grams") is not None else None
+            except (TypeError, ValueError):
+                grams = None
+            out.append({"food": str(it.get("food", "")).strip(), "grams": grams,
+                        "amount_reason": it.get("amount_reason") or it.get("q_reason"),
+                        "kcal_estimate": it.get("kcal_estimate"),
+                        "kcal_per_100g": it.get("kcal_per_100g"),
                         "carb_g": it.get("carb_g"), "protein_g": it.get("protein_g"),
-                        "fat_g": it.get("fat_g"), "box": box})
+                        "fat_g": it.get("fat_g"), "from_label": bool(it.get("from_label")),
+                        "box": box})
         return out
 
     def analyze(self, pil_img):
         """N회 분석 후 음식별로 비율·칼로리 중앙값으로 안정화(self-consistency)."""
         import statistics
         img = pil_img.convert("RGB")
-        runs = [self._analyze_once(img) for _ in range(self.n_samples)]
-        runs = [r for r in runs if r]
-        if not runs:
+        runs, err = [], None
+        for _ in range(self.n_samples):
+            try:
+                runs.append(self._analyze_once(img))
+            except Exception as ex:  # 이 샘플은 호출 자체가 실패
+                err = ex
+        good = [r for r in runs if r]
+        if not good:
+            # 응답을 한 번도 못 받고 전부 예외였다면 호출 실패를 상위에 전파,
+            # 응답은 왔으나 비었으면(runs에 [] 존재) 진짜 '음식 없음'.
+            if not runs and err is not None:
+                raise err
             return []
+        runs = good
         if len(runs) == 1:
             return runs[0]
         # 음식명(공백제거) 기준으로 여러 실행 결과를 묶어 중앙값 집계
@@ -381,18 +386,23 @@ class GeminiFoodAnalyzer:
         for key, items in groups.items():
             if len(items) < need:
                 continue
-            pcts = [Q_RATIO[i["q"]] * 100 for i in items]
-            med_pct = statistics.median(pcts)
-            q = percent_to_q(med_pct)
-            rep = min(items, key=lambda i: abs(Q_RATIO[i["q"]] * 100 - med_pct))
 
             def med(field):
                 vals = [float(i[field]) for i in items if isinstance(i.get(field), (int, float))]
-                return round(statistics.median(vals), 1) if vals else rep.get(field)
+                return round(statistics.median(vals), 1) if vals else None
+            # 대표 항목: 그램 중앙값에 가장 가까운 실행(그램 없으면 첫 실행)
+            gvals = [i for i in items if isinstance(i.get("grams"), (int, float))]
+            if gvals:
+                mg = statistics.median([i["grams"] for i in gvals])
+                rep = min(gvals, key=lambda i: abs(i["grams"] - mg))
+            else:
+                rep = items[0]
             out.append({
-                "food": rep["food"], "q": q, "q_reason": rep.get("q_reason"),
-                "kcal_estimate": med("kcal_estimate"), "carb_g": med("carb_g"),
-                "protein_g": med("protein_g"), "fat_g": med("fat_g"),
+                "food": rep["food"], "grams": med("grams"), "amount_reason": rep.get("amount_reason"),
+                "kcal_estimate": med("kcal_estimate"), "kcal_per_100g": med("kcal_per_100g"),
+                "carb_g": med("carb_g"), "protein_g": med("protein_g"), "fat_g": med("fat_g"),
+                # 과반 실행이 라벨판독이면 라벨로 간주(라벨값은 med로 안정화됨)
+                "from_label": sum(1 for i in items if i.get("from_label")) > len(items) / 2,
                 "box": rep.get("box"), "samples": len(items),
             })
         return out or runs[0]
@@ -423,6 +433,24 @@ class GeminiFoodAnalyzer:
             except Exception:
                 pass
         return round(statistics.median(ests), 1) if ests else None
+
+
+# Gemini의 대체 표현(공백제거) → DB 표준 음식명. DB에 없는 이름을 표준명으로 정규화해
+# OOD(미매칭)·근사명칭 혼동을 줄인다. ※이미 DB에 있는 이름은 match에서 먼저 잡히므로 무영향.
+_FOOD_ALIASES = {
+    "오니기리": "삼각김밥",
+    "블랙커피": "아메리카노", "아메리카노커피": "아메리카노",
+    "라테": "카페라떼", "카페라테": "카페라떼",
+    "떡뽀끼": "떡볶이", "떡뽀키": "떡볶이",
+    "프라이드치킨": "후라이드치킨", "후라이드": "후라이드치킨",
+    # DB 정합성 교정: '소불고기' 엔트리 밀도(0.87 kcal/g)가 소고기로선 명백히 오류(국물 수준)
+    # → 올바른 '불고기'(2.58)로 흡수. 소불고기=불고기(기본 소고기)라 의미도 동일.
+    "소불고기": "불고기",
+    # 트렌디 음식 변형명 → 추가한 표준 항목으로
+    "엽기떡볶이": "엽떡", "까르보불닭볶음면": "까르보불닭",
+    # DB 미수록 변형명 → 표준 DB 항목으로(웨지감자=감자튀김 종류)
+    "웨지감자": "감자튀김",
+}
 
 
 # ---- ③ 영양DB -------------------------------------------------------------
@@ -482,9 +510,14 @@ class NutritionDB:
         전혀 다른 음식은 매칭 안 함(마라탕 ↛ 고구마맛탕)."""
         if not name:
             return None
-        if name in self.db:
-            return name
         nm = name.replace(" ", "")
+        # 동의어 → DB 표준명 정규화를 최우선으로(오니기리→삼각김밥, 소불고기→불고기).
+        # ※ 정확키 체크보다 먼저 해야 별칭 대상이 DB에 잘못된 엔트리로 존재해도 표준명으로 교정됨.
+        nm = _FOOD_ALIASES.get(nm, nm)
+        if nm in self.db:
+            return nm
+        if name in self.db:  # 별칭 없던 원본이 그대로 키인 경우(공백 포함 키 등) 허용
+            return name
         # 1) 정확(띄어쓰기만 다른) 매칭 — dish(1인분) 먼저, 없으면 전체
         exact = self._norm_dish.get(nm) or self._norm_all.get(nm)
         if exact:
@@ -492,18 +525,17 @@ class NutritionDB:
         # 2) 부분포함/유사도 매칭 — dish 먼저, 없으면 전체
         return self._fuzzy_in(nm, self._norm_dish) or self._fuzzy_in(nm, self._norm_all)
 
-    def calculate(self, name, q, ratio=None):
-        """ratio 를 직접 주면 그 연속 비율로 계산하고,
-        없으면 Q단계(Q_RATIO)의 고정 비율을 사용한다."""
+    def calculate(self, name, ratio=1.0):
+        """1인분 대비 ratio(연속 배수)로 영양을 계산. ratio 미지정 시 1.0(1인분)."""
         key = self.match(name)
         if key is None:
             return None
         info = self.db[key]
         if ratio is None:
-            ratio = Q_RATIO.get(q.upper(), 1.0)
+            ratio = 1.0
         bw, bk = num(info["중량"]), num(info["칼로리"])
         return {
-            "matched": key, "q": q.upper(), "ratio": round(ratio, 3),
+            "matched": key, "ratio": round(ratio, 3),
             "grams": round(bw * ratio, 1), "kcal": round(bk * ratio, 1),
             "base_w": round(bw, 1), "base_kcal": round(bk, 1),
             "carb": round(num(info["탄수화물"]) * ratio, 1),
@@ -514,25 +546,6 @@ class NutritionDB:
         }
 
 
-# 반찬/곁들임(대개 소량) 키워드 — 하이브리드 양추정 라우팅용(옵션 --quantity hybrid).
-# ※ 확대 검증 결과 ResNet이 근접촬영을 화면채움 기준으로 과대추정해 하이브리드가
-#   기본으로는 이득이 적음(기본값은 gemini). '쌈'(보쌈 오탐)·'김치'(두부김치 오탐) 등
-#   광범위 어절은 제외하고 명확한 반찬만 남김.
-_BANCHAN_KW = ("배추김치", "깍두기", "겉절이", "동치미", "총각김치", "파김치", "백김치",
-               "나물", "무침", "생채", "장아찌", "피클", "자반", "콩자반", "젓갈", "멸치볶음")
-# 아래 단어가 들어가면 '요리(메인)'로 보고 반찬에서 제외(김치'찌개'·'두부김치'·'보쌈' 등)
-_MAIN_KW = ("찌개", "국", "탕", "전골", "볶음밥", "비빔밥", "덮밥", "찜", "조림",
-            "구이", "전", "면", "국수", "밥", "죽", "쌈", "두부", "볶음탕")
-
-
-def _is_banchan(name):
-    """음식명이 반찬/곁들임(소량)인지. 메인요리 단어가 있으면 반찬 아님(김치찌개·보쌈↛반찬)."""
-    n = (name or "").replace(" ", "")
-    if any(m in n for m in _MAIN_KW):
-        return False
-    return any(kw in n for kw in _BANCHAN_KW)
-
-
 def _kcal_reliability(results, has_reference=False):
     """총칼로리 신뢰도 판정. 실측(Nutrition5k) 검증상 '여러 음식·DB미매칭'일수록
     각 항목을 1인분으로 잡아 합산해 과대추정 위험이 커짐 → 정직하게 표시한다.
@@ -541,7 +554,8 @@ def _kcal_reliability(results, has_reference=False):
     n = len(named)
     if n == 0:
         return None, None
-    ood = sum(1 for r in named if not r.get("in_db"))
+    # 라벨 판독 항목은 DB 못지않게 정확하므로 OOD로 치지 않음.
+    ood = sum(1 for r in named if not r.get("in_db") and not r.get("from_label"))
     if has_reference:  # 접시기준(면적)으로 실제 양을 잰 경우
         return "높음", "접시기준(면적) 반영"
     if n >= 4 or (n >= 2 and ood >= 2 and ood >= n - ood):
@@ -553,40 +567,32 @@ def _kcal_reliability(results, has_reference=False):
 
 # ---- 통합 파이프라인 -------------------------------------------------------
 class FoodAIPipeline:
-    def __init__(self, device="cpu", quantity_backend="gemini", engine="gemini",
-                 gemini_model="gemini-2.5-flash", use_search=True,
-                 gemini_samples=3, plate_cm=None):
-        self.quantity_backend = quantity_backend
+    def __init__(self, engine="gemini",
+                 gemini_model="gemini-3.5-flash", use_search=True,
+                 gemini_samples=1, plate_cm=None, gram_calib=None,
+                 holistic_multi=True, gram_anchor=True, scale_anchor=False,
+                 thinking_budget=128):
         self.engine = engine
         self.plate_cm = plate_cm
-        self.resnet_q = None
+        # 그램 편향 보정계수(None이면 전역 기본 GRAM_CALIBRATION). 실측/재튜닝·해제용.
+        self.gram_calib = GRAM_CALIBRATION if gram_calib is None else gram_calib
+        # 다중음식(2개+)은 홀리스틱(접시 전체 통추정)으로 총칼로리 산출. 실측상 항목 합산보다
+        # 우수(혼합접시 MAPE 28→24%·±25% 53→64%·상관 0.36→0.70). 항목 누락(커버리지) 보완.
+        # 대가로 다중음식 접시당 estimate_total_kcal 호출 1회 추가. 끄려면 False.
+        self.holistic_multi = holistic_multi
         self.gemini_analyzer = None
         self.nutrition = NutritionDB()
 
-        # Gemini 전문가 엔진이 유일 지원 모드(분류·칼로리=Gemini).
-        # 로컬 YOLO 분류기는 제거됨 → local/hybrid 모드는 더 이상 지원하지 않는다.
+        # Gemini 전문가 엔진이 유일 지원 모드(분류·양·칼로리 모두 Gemini).
+        # 로컬 YOLO 분류기·ResNet 양추정기는 제거됨.
         if engine != "gemini":
             raise RuntimeError(
-                "로컬 YOLO 분류기는 제거되었습니다. '--engine gemini'를 사용하세요 "
-                "(분류=Gemini, 양=Gemini 기본 / '--quantity resnet'이면 ResNet).")
+                "로컬 모델은 제거되었습니다. '--engine gemini'를 사용하세요 "
+                "(분류·양·칼로리 모두 Gemini).")
         self.gemini_analyzer = GeminiFoodAnalyzer(
-            model=gemini_model, use_search=use_search, n_samples=gemini_samples)
-        # ResNet 양추정 로드: 'resnet'(단독) 또는 'hybrid'(반찬=ResNet, 메인=Gemini) 모드.
-        # Gemini가 잡은 음식 박스를 크롭해 ResNet으로 Q단계를 추정한다.
-        if quantity_backend in ("resnet", "hybrid"):
-            self.resnet_q = QuantityEstimator(device=device)
-
-    def _crop_for_resnet(self, pil_full, box):
-        """Gemini 정규화 박스(0~1000, [ymin,xmin,ymax,xmax])를 픽셀 크롭. 없으면 전체."""
-        if not box:
-            return pil_full
-        W, H = pil_full.size
-        ymin, xmin, ymax, xmax = box
-        x0, y0 = int(xmin / 1000 * W), int(ymin / 1000 * H)
-        x1, y1 = int(xmax / 1000 * W), int(ymax / 1000 * H)
-        if x1 > x0 and y1 > y0:
-            return pil_full.crop((x0, y0, x1, y1))
-        return pil_full
+            model=gemini_model, use_search=use_search, n_samples=gemini_samples,
+            gram_anchor=gram_anchor, scale_anchor=scale_anchor,
+            thinking_budget=thinking_budget)
 
     def analyze(self, image_path):
         return self.analyze_gemini(image_path)
@@ -598,34 +604,64 @@ class FoodAIPipeline:
         if bgr is None:
             raise FileNotFoundError(f"이미지를 열 수 없습니다: {image_path}")
         pil_full = Image.fromarray(bgr[:, :, ::-1])
-        foods = self.gemini_analyzer.analyze(pil_full)
+        try:
+            foods = self.gemini_analyzer.analyze(pil_full)
+        except Exception as ex:
+            # Gemini 호출이 전부 실패(쿼터 초과·네트워크·서버 과부하 등). '음식 없음'과
+            # 구분해 error로 명시 → 사용자가 재시도할지 알 수 있게 한다.
+            return {"image": str(image_path), "detections": [], "total_kcal": 0,
+                    "kcal_reliability": None, "kcal_note": None, "total_kcal_method": "합산",
+                    "error": f"AI 분석 호출 실패(쿼터 초과·네트워크·서버 과부하 등): {ex}"}
 
         results = []
+        # 그램 보정은 '단품(감지 1개)'에만 적용. 실측상 편향이 음식 수에 따라 방향이 반대:
+        # 단품은 +15% 과다(스케일 편향)라 0.88이 옳지만, 혼합접시는 오히려 과소추정
+        # (항목 누락=커버리지 편향)이라 0.88을 곱하면 역효과(±25% 47→33%). → 단품만 보정.
+        single_food = len(foods) == 1
         for f in foods:
-            name, gq = f["food"], f["q"]
-            # 기본: Gemini의 Q단계
-            q, ratio, q_backend = gq, Q_RATIO.get(gq, 1.0), "gemini-expert"
-            if self.resnet_q is not None:
-                crop = self._crop_for_resnet(pil_full, f.get("box"))
-                _q, _p, probs_r = self.resnet_q.estimate(crop)
-                rpct = probs_to_percent(probs_r)
-                rq = percent_to_q(rpct)
-                if self.quantity_backend == "resnet":
-                    q, ratio, q_backend = rq, rpct / 100.0, "resnet"
-                elif self.quantity_backend == "hybrid":
-                    # 상보 라우팅: 반찬·소량은 ResNet(소량 강점), 메인요리는 Gemini(정상 강점)
-                    if _is_banchan(name):
-                        q, ratio, q_backend = rq, rpct / 100.0, "hybrid(반찬→ResNet)"
-                    else:
-                        q_backend = "hybrid(메인→Gemini)"
+            name = f["food"]
             matched = self.nutrition.match(name)
-            if matched:
-                nut = self.nutrition.calculate(name, q, ratio=ratio)
+            grams = f.get("grams")
+            # 편향 보정: 단품 Gemini 그램은 체계적으로 +12~16% 과다추정 → 보정계수로 상쇄.
+            # DB경로(ratio=grams/중량)·OOD경로(그램×밀도)·표시 그램에 일관 반영.
+            if single_food and isinstance(grams, (int, float)) and grams > 0 and self.gram_calib != 1.0:
+                grams = grams * self.gram_calib
+            has_grams = isinstance(grams, (int, float)) and grams > 0
+            # 양 = Gemini의 '실제 무게(그램)' 추정. DB 1인분 중량으로 나눠 연속 비율(ratio) 산출.
+            # 칼로리 = DB칼로리 × (그램/1인분중량) = 그램 × DB밀도. 그램이 없으면 1인분 가정.
+            ratio, qty_source = 1.0, "gemini-grams"
+            if not has_grams:
+                qty_source = "gemini-1인분(그램추정없음)"
+            elif matched:
+                base_w = num(self.nutrition.db[matched]["중량"])
+                if base_w > 0:
+                    ratio = grams / base_w
+            # 영양성분표(라벨) 판독값이 있으면 최우선 — DB·그램추정보다 정확(가공식품).
+            from_label = bool(f.get("from_label")) and isinstance(f.get("kcal_estimate"), (int, float))
+            if from_label:
+                kcal, kcal_src = f.get("kcal_estimate"), "영양성분표(라벨)"
+                qty_source = "라벨(영양성분표)"
+                nut = None
+                if any(f.get(k) is not None for k in ("carb_g", "protein_g", "fat_g")):
+                    nut = {
+                        "matched": name, "kcal": kcal, "base_kcal": kcal,
+                        "grams": round(grams, 1) if has_grams else None, "base_w": None, "basis": "라벨",
+                        "carb": f.get("carb_g"), "protein": f.get("protein_g"),
+                        "fat": f.get("fat_g"), "sodium": None, "source": "영양성분표",
+                    }
+            elif matched:
+                nut = self.nutrition.calculate(name, ratio=ratio)
                 kcal, kcal_src = nut["kcal"], "DB"
             else:
-                # DB 미수록 → Gemini의 칼로리+탄단지 추정값으로 영양 구성
-                kcal = f.get("kcal_estimate")
-                kcal_src = "Gemini(검색추정)"
+                # DB 미수록 → Gemini 추정값. 그램·밀도(100g당kcal) 있으면 그램×밀도로 칼로리
+                # (Gemini 총kcal 직접값보다 안정적 — 실측상 그램방식이 우수).
+                kper = f.get("kcal_per_100g")
+                if has_grams and isinstance(kper, (int, float)) and kper > 0:
+                    kcal = round(grams * kper / 100.0, 1)
+                    kcal_src = "Gemini(그램×밀도)"
+                else:
+                    kcal = f.get("kcal_estimate")
+                    kcal_src = "Gemini(검색추정)"
                 nut = None
                 if any(f.get(k) is not None for k in ("carb_g", "protein_g", "fat_g")):
                     nut = {
@@ -637,8 +673,11 @@ class FoodAIPipeline:
             results.append({
                 "code": None, "name": name, "english": None,
                 "conf": None, "clf_src": "gemini-expert", "in_db": matched is not None,
-                "q": q, "q_percent": round(ratio * 100, 1), "q_backend": q_backend,
-                "q_detail": {}, "q_reason": f.get("q_reason"),
+                "from_label": from_label,
+                "grams": round(grams, 0) if has_grams else None,
+                # portion_pct: 1인분 대비 %(DB매칭일 때만 의미 — 1인분 기준이 존재). OOD는 None.
+                "portion_pct": round(ratio * 100, 1) if matched else None,
+                "qty_source": qty_source, "amount_reason": f.get("amount_reason"),
                 "kcal": kcal, "kcal_source": kcal_src,
                 "nutrition": nut, "box": f.get("box"), "fallback": False,
             })
@@ -661,12 +700,20 @@ class FoodAIPipeline:
         # 접시 전체를 통으로 본 홀리스틱 총 칼로리로 보정(실측상 오차 절반).
         # 각 항목 칼로리·탄단지도 비율만큼 축소해 합계와 맞춘다.
         total_method = "합산"
-        if rel == "낮음" and not self.plate_cm:
+        # 발동: 신뢰도 낮음(기본) 또는 holistic_multi 실험모드에서 다중음식(2개+).
+        holistic_on = (rel == "낮음") or (self.holistic_multi and len(named) >= 2)
+        if holistic_on and not self.plate_cm:
             h = self.gemini_analyzer.estimate_total_kcal(pil_full)
             if h is not None and total > 0:
                 h = min(h, 2500.0)  # 상식 상한(폭주 방지)
-                factor = h / total
+                # 라벨 판독 항목은 정확값이라 재조정에서 제외 — 나머지 추정 항목만 h에 맞춰 보정.
+                label_kcal = sum(r["kcal"] for r in results
+                                 if r.get("from_label") and isinstance(r.get("kcal"), (int, float)))
+                est_total = total - label_kcal
+                factor = (max(0.0, h - label_kcal) / est_total) if est_total > 0 else 1.0
                 for r in results:
+                    if r.get("from_label"):
+                        continue  # 라벨값 보존
                     if isinstance(r.get("kcal"), (int, float)):
                         r["kcal"] = round(r["kcal"] * factor, 1)
                     nut = r.get("nutrition")
@@ -674,11 +721,12 @@ class FoodAIPipeline:
                         for kk in ("kcal", "carb", "protein", "fat"):
                             if isinstance(nut.get(kk), (int, float)):
                                 nut[kk] = round(nut[kk] * factor, 1)
-                total = h
+                total = round(label_kcal + est_total * factor, 1) if est_total > 0 else total
                 total_method = "홀리스틱(접시전체 추정)"
                 note = (note or "") + " · 총합=접시전체 추정으로 보정(합산 과대 방지)"
         return {"image": str(image_path), "detections": results, "total_kcal": round(total, 1),
-                "kcal_reliability": rel, "kcal_note": note, "total_kcal_method": total_method}
+                "kcal_reliability": rel, "kcal_note": note, "total_kcal_method": total_method,
+                "error": None}
 
     def _plate_ref_override(self, image_path, r, region=None):
         """접시 기준(면적) 양추정으로 비율·칼로리를 덮어쓴다. region=박스면 그 영역만."""
@@ -691,13 +739,12 @@ class FoodAIPipeline:
         if not ref or ref.get("ratio") is None:
             return
         ratio = ref["ratio"]
-        r["q"] = percent_to_q(ratio * 100)
-        r["q_percent"] = round(ratio * 100, 1)
-        r["q_backend"] = f"접시기준({self.plate_cm}cm)"
-        r["q_reason"] = (f'음식 면적 {ref["food_area_cm2"]}cm²(접시 채움 {ref["coverage_%"]}%) '
-                         f'→ 1인분의 약 {int(ratio * 100)}%')
+        r["portion_pct"] = round(ratio * 100, 1)
+        r["qty_source"] = f"접시기준({self.plate_cm}cm)"
+        r["amount_reason"] = (f'음식 면적 {ref["food_area_cm2"]}cm²(접시 채움 {ref["coverage_%"]}%) '
+                              f'→ 1인분의 약 {int(ratio * 100)}%')
         if self.nutrition.match(r["name"]):
-            nut = self.nutrition.calculate(r["name"], r["q"], ratio=ratio)
+            nut = self.nutrition.calculate(r["name"], ratio=ratio)
             r["nutrition"] = nut
             r["kcal"] = nut["kcal"]
             r["kcal_source"] = "DB(접시기준 양)"
@@ -706,6 +753,10 @@ class FoodAIPipeline:
 def print_result(res):
     print(f'\n📷 이미지: {res["image"]}')
     dets = res["detections"]
+    if res.get("error"):
+        print(f'  ⚠ {res["error"]}')
+        print("  → 음식이 없는 게 아니라 분석 호출이 실패했습니다. 잠시 후 다시 시도해 주세요.")
+        return
     if not dets:
         print("  음식을 찾지 못했습니다.")
         return
@@ -723,27 +774,21 @@ def print_result(res):
         if d.get("low_conf") and d.get("alternatives"):
             alts = ", ".join(f'{a["name"]}({a["conf"]})' for a in d["alternatives"])
             print(f'       🤔 확신 낮음 — 다른 후보: {alts}')
-        if not d.get("in_db", True):
+        if d.get("from_label"):
+            print("       🏷 영양성분표 판독값 사용(가공식품) — 추정보다 정확")
+        elif not d.get("in_db", True):
             if d.get("kcal") is not None:
                 print("       ⓘ 영양DB 미수록 → 칼로리는 Gemini 검색 기반 추정값")
             else:
                 print("       ⓘ 영양DB 미수록 음식 → 분류·양은 Gemini 추정, 칼로리는 계산 불가")
-        backend = d.get("q_backend", "resnet")
-        detail = d.get("q_detail", {})
-        if backend == "both" and detail:
-            r, g = detail.get("resnet"), detail.get("gemini")
-            if r:
-                print(f'    ⚖ 양(ResNet): {r["q"]} (~{r["percent"]}%, top_prob {r["top_prob"]})')
-            if g:
-                print(f'    ⚖ 양(Gemini): {g["q"]} (~{g["percent"]}%, conf {g["confidence"]})')
-                if g.get("reason"):
-                    print(f'       └ 근거: {g["reason"]}')
-            print(f'    ⚖ 양(블렌딩): {Q_LABEL.get(d["q"], d["q"])} ({d["q"]}, '
-                  f'평균 ~{d["q_percent"]}% → x{round(d["q_percent"]/100,3)})')
-        else:
-            print(f'    ⚖ 양: {Q_LABEL.get(d["q"], d["q"])} ({d["q"]}, ~{d["q_percent"]}%, {backend})')
-            if d.get("q_reason"):
-                print(f'       └ 근거: {d["q_reason"]}')
+        # 양: Gemini 그램 추정을 우선 표시. DB매칭이면 1인분 대비 %도 함께.
+        gram_txt = f'약 {d["grams"]:.0f}g' if isinstance(d.get("grams"), (int, float)) else "그램추정 없음"
+        pct = d.get("portion_pct")
+        pct_txt = f' (1인분의 ~{pct:.0f}%)' if isinstance(pct, (int, float)) else ""
+        qsrc = d.get("qty_source", "")
+        print(f'    ⚖ 양: {gram_txt}{pct_txt}  [{qsrc}]')
+        if d.get("amount_reason"):
+            print(f'       └ 근거: {d["amount_reason"]}')
         n = d["nutrition"]
         if n:
             src_tag = f' [{d["kcal_source"]}]' if d.get("kcal_source") else ""
@@ -779,21 +824,30 @@ def print_result(res):
 def main():
     ap = argparse.ArgumentParser(description="음식 분류(Gemini) + 양 추정 + 칼로리 통합 파이프라인")
     ap.add_argument("--image", help="분석할 음식 사진 경로")
-    ap.add_argument("--device", default="cpu", help="cpu 또는 cuda(ResNet 양추정용)")
-    ap.add_argument("--quantity", choices=["gemini", "resnet", "hybrid"], default="gemini",
-                    help="양 추정: gemini(기본, 가장 정확) / resnet(로컬, 화면채움 기준이라 과대경향) / "
-                         "hybrid(반찬만 ResNet, 실측상 이득 적음)")
     ap.add_argument("--engine", choices=["gemini"], default="gemini",
-                    help="gemini(Gemini 전문가 분석: 멀티음식+칼로리+검색). YOLO 로컬 분류기는 제거됨")
+                    help="gemini(Gemini 전문가 분석: 멀티음식+양(그램)+칼로리+검색). 로컬 모델은 제거됨")
     ap.add_argument("--no-search", action="store_true", help="gemini 엔진에서 Google 검색 그라운딩 끄기")
-    ap.add_argument("--gemini-samples", type=int, default=3,
-                    help="Gemini self-consistency 샘플 수(중앙값/다수결). 기본 3(안정적 정확도). "
-                         "토큰 아끼려면 1(속도↑, 변동↑)")
+    ap.add_argument("--gemini-samples", type=int, default=1,
+                    help="Gemini self-consistency 샘플 수(중앙값/다수결). 기본 1"
+                         "(3.5-flash는 단발도 안정적: 실측검증상 분류 -1.4pp·칼로리 동급, 비용 1/3·속도 3배). "
+                         "안정성 더 원하면 3")
     ap.add_argument("--plate-cm", type=float, default=None,
                     help="접시/그릇 지름(cm). 주면 면적 기반(접시기준)으로 양을 더 정확히 추정")
     ap.add_argument("--vessel", default=None,
                     help="지름 대신 그릇 종류(밥공기/국그릇/접시/큰접시 등)로 접시기준 양추정")
-    ap.add_argument("--gemini-model", default="gemini-2.5-flash", help="Gemini 모델명")
+    ap.add_argument("--gemini-model", default="gemini-3.5-flash", help="Gemini 모델명")
+    ap.add_argument("--gram-calib", type=float, default=None,
+                    help=f"그램 편향 보정계수(기본 {GRAM_CALIBRATION}). 1.0=보정끔. 실측 재튜닝용")
+    ap.add_argument("--no-holistic-multi", action="store_true",
+                    help="다중음식 홀리스틱 총칼로리(기본 켜짐)를 끄고 항목 합산으로")
+    ap.add_argument("--no-gram-anchor", action="store_true",
+                    help="프롬프트 그램 앵커(기본 켜짐: 흔한 1인분 무게 감각)를 끔")
+    ap.add_argument("--scale-anchor", action="store_true",
+                    help="(실험) 크기 기준물(cm) 스케일 앵커 주입 — 단품엔 효과 미확인")
+    ap.add_argument("--thinking-budget", type=int, default=128,
+                    help="내부 추론(thinking) 토큰 예산(기본 128). 실측상 128이면 추론이 ~375토큰으로 "
+                         "줄어 모델 동적(~1100) 대비 품질 동등·출력토큰 약 58%% 절감. "
+                         "0은 프롬프트 규칙을 놓쳐 품질 저하(비권장)")
     ap.add_argument("--json", action="store_true", help="JSON으로 출력")
     args = ap.parse_args()
 
@@ -807,12 +861,14 @@ def main():
         if plate_cm is None:
             ap.error(f"알 수 없는 그릇 종류: {args.vessel} (예: {'/'.join(portion_ref.VESSEL_CM)})")
     try:
-        pipe = FoodAIPipeline(device=args.device,
-                              quantity_backend=args.quantity,
-                              engine=args.engine, gemini_model=args.gemini_model,
+        pipe = FoodAIPipeline(engine=args.engine, gemini_model=args.gemini_model,
                               use_search=not args.no_search,
                               gemini_samples=args.gemini_samples,
-                              plate_cm=plate_cm)
+                              plate_cm=plate_cm, gram_calib=args.gram_calib,
+                              holistic_multi=not args.no_holistic_multi,
+                              gram_anchor=not args.no_gram_anchor,
+                              scale_anchor=args.scale_anchor,
+                              thinking_budget=args.thinking_budget)
     except RuntimeError as ex:
         print(f"⚠ {ex}")
         print("  → Gemini 기능은 GEMINI_API_KEY 가 필요합니다 (환경변수 설정).")

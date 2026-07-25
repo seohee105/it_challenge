@@ -1,18 +1,11 @@
 # -*- coding: utf-8 -*-
-r"""HTTP bridge for using food_ai.py from a Godot game.
-
-Run:
-    .\.venv311\Scripts\python.exe -m pip install fastapi uvicorn python-multipart
-    .\.venv311\Scripts\python.exe -m uvicorn ai_server:app --host 127.0.0.1 --port 8000
-
-Godot can POST a food photo to /analyze and receive both the raw AI result and
-game-friendly values such as total calories, macro totals, and goal status.
-"""
+"""FastAPI bridge for the Godot Android food camera app."""
 
 from __future__ import annotations
 
+import os
 import tempfile
-import traceback  # 🔍 에러 추적을 위한 모듈 추가
+import traceback
 from pathlib import Path
 from typing import Any
 
@@ -31,24 +24,92 @@ def get_pipeline() -> FoodAIPipeline:
     global _pipeline
     if _pipeline is None:
         _pipeline = FoodAIPipeline(
-            quantity_backend="gemini",
             engine="gemini",
-            gemini_model="gemini-2.5-flash",
+            gemini_model=os.environ.get("GEMINI_MODEL", "gemini-3.5-flash"),
             use_search=True,
             gemini_samples=1,
         )
     return _pipeline
 
 
-def summarize_macros(analysis: dict[str, Any]) -> dict[str, float]:
-    totals = {"carb_g": 0.0, "protein_g": 0.0, "fat_g": 0.0, "sodium_mg": 0.0}
+def to_float(value: Any, default: float = 0.0) -> float:
+    try:
+        if value is None:
+            return default
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def round_number(value: Any, digits: int = 1) -> int | float:
+    rounded = round(to_float(value), digits)
+    if float(rounded).is_integer():
+        return int(rounded)
+    return rounded
+
+
+def normalize_foods(analysis: dict[str, Any]) -> list[dict[str, Any]]:
+    foods: list[dict[str, Any]] = []
     for item in analysis.get("detections", []):
+        name = str(item.get("name") or item.get("food") or "").strip()
+        if not name:
+            continue
+
         nutrition = item.get("nutrition") or {}
-        totals["carb_g"] += float(nutrition.get("carb") or 0)
-        totals["protein_g"] += float(nutrition.get("protein") or 0)
-        totals["fat_g"] += float(nutrition.get("fat") or 0)
-        totals["sodium_mg"] += float(nutrition.get("sodium") or 0)
-    return {key: round(value, 1) for key, value in totals.items()}
+        calorie = item.get("kcal")
+        if calorie is None:
+            calorie = nutrition.get("kcal")
+
+        confidence = item.get("confidence")
+        if confidence is None:
+            confidence = item.get("conf")
+        if confidence is None:
+            confidence = 0.0
+
+        foods.append(
+            {
+                "name": name,
+                "confidence": min(max(round_number(confidence, 2), 0.0), 1.0),
+                "calorie": round_number(calorie, 1),
+                "carb": round_number(nutrition.get("carb"), 1),
+                "protein": round_number(nutrition.get("protein"), 1),
+                "fat": round_number(nutrition.get("fat"), 1),
+                "sodium": round_number(nutrition.get("sodium"), 1),
+            }
+        )
+    return foods
+
+
+def build_game_delta(
+    foods: list[dict[str, Any]],
+    bmr_kcal: float | None,
+    exercise_kcal: float | None,
+) -> dict[str, Any]:
+    meal_kcal = round_number(sum(to_float(food.get("calorie")) for food in foods), 1)
+    macros = {
+        "carb_g": round_number(sum(to_float(food.get("carb")) for food in foods), 1),
+        "protein_g": round_number(sum(to_float(food.get("protein")) for food in foods), 1),
+        "fat_g": round_number(sum(to_float(food.get("fat")) for food in foods), 1),
+        "sodium_mg": round_number(sum(to_float(food.get("sodium")) for food in foods), 1),
+    }
+    delta: dict[str, Any] = {
+        "meal_kcal": meal_kcal,
+        "food_count": len(foods),
+        "macros": macros,
+    }
+
+    if bmr_kcal is not None and exercise_kcal is not None:
+        net = meal_kcal - bmr_kcal - exercise_kcal
+        goal_met = -500 <= net <= -200
+        delta.update(
+            {
+                "net_kcal": round(net, 1),
+                "daily_goal_met": goal_met,
+                "card_upgrade_allowed": goal_met,
+                "bonus_coin": 1 if macro_bonus(macros) else 0,
+            }
+        )
+    return delta
 
 
 def macro_bonus(macros: dict[str, float]) -> bool:
@@ -65,33 +126,9 @@ def macro_bonus(macros: dict[str, float]) -> bool:
     return 0.45 <= carb_ratio <= 0.65 and 0.15 <= protein_ratio <= 0.30 and 0.15 <= fat_ratio <= 0.30
 
 
-def build_game_delta(
-    analysis: dict[str, Any],
-    bmr_kcal: float | None,
-    exercise_kcal: float | None,
-) -> dict[str, Any]:
-    total_kcal = float(analysis.get("total_kcal") or 0)
-    macros = summarize_macros(analysis)
-    delta: dict[str, Any] = {
-        "meal_kcal": round(total_kcal, 1),
-        "macros": macros,
-        "macro_bonus": macro_bonus(macros),
-        "food_count": len(analysis.get("detections", [])),
-        "kcal_reliability": analysis.get("kcal_reliability"),
-    }
-
-    if bmr_kcal is not None and exercise_kcal is not None:
-        net = total_kcal - bmr_kcal - exercise_kcal
-        goal_met = -500 <= net <= -200
-        delta.update(
-            {
-                "net_kcal": round(net, 1),
-                "daily_goal_met": goal_met,
-                "card_upgrade_allowed": goal_met,
-                "bonus_coin": 1 if macro_bonus(macros) else 0,
-            }
-        )
-    return delta
+@app.get("/health")
+def health() -> dict[str, Any]:
+    return {"ok": True}
 
 
 @app.post("/analyze")
@@ -102,30 +139,24 @@ async def analyze_food(
 ) -> dict[str, Any]:
     suffix = Path(image.filename or "food.jpg").suffix or ".jpg"
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-        tmp.write(await image.read())
+        image_bytes = await image.read()
+        if not image_bytes:
+            raise HTTPException(status_code=400, detail="업로드된 이미지가 비어 있습니다.")
+        tmp.write(image_bytes)
         image_path = Path(tmp.name)
 
     try:
-        print(f"\n[디버그] {image_path.name} 임시 파일 생성 완료. AI 분석 파이프라인을 실행합니다...")
-        
-        # 실제 AI 파이프라인 분석 실행
         analysis = get_pipeline().analyze(str(image_path))
-        
-        print("[디버그] AI 파이프라인 분석 완료! 수신된 데이터:")
-        print("Raw Analysis JSON:", analysis)
-        
+        foods = normalize_foods(analysis)
+        game_delta = build_game_delta(foods, bmr_kcal, exercise_kcal)
         return {
             "ok": True,
-            "analysis": analysis,
-            "game_delta": build_game_delta(analysis, bmr_kcal, exercise_kcal),
+            "foods": foods,
+            "game_delta": game_delta,
         }
     except Exception as exc:  # noqa: BLE001
-        # ⚠️ 파이썬 터미널 창에 에러 원인과 추적 이력을 강제로 자세히 출력합니다.
-        print("\n❌❌❌ [AI 파이프라인 내부 에러 발생] ❌❌❌")
-        traceback.print_exc() 
-        print("==================================================\n")
-        
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"AI 분석 중 오류가 발생했습니다: {exc}") from exc
     finally:
         image_path.unlink(missing_ok=True)
 

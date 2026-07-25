@@ -47,13 +47,18 @@ func _append_text(body: PackedByteArray, text: String) -> void:
 
 
 func _on_request_completed(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	var response_text := body.get_string_from_utf8()
+	var parsed = JSON.parse_string(response_text)
+
 	if result != HTTPRequest.RESULT_SUCCESS or response_code < 200 or response_code >= 300:
-		food_analyze_failed.emit("AI server error: " + str(response_code))
+		var detail := response_text
+		if typeof(parsed) == TYPE_DICTIONARY and parsed.has("detail"):
+			detail = str(parsed["detail"])
+		food_analyze_failed.emit("AI server error: " + str(response_code) + " - " + detail)
 		return
 
-	var parsed = JSON.parse_string(body.get_string_from_utf8())
 	if typeof(parsed) != TYPE_DICTIONARY:
-		food_analyze_failed.emit("Invalid AI response")
+		food_analyze_failed.emit("Invalid AI response: " + response_text)
 		return
 
 	food_analyzed.emit(parsed)

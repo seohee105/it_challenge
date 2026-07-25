@@ -1,16 +1,16 @@
-# 음식 분류 + 양 추정 + 칼로리 파이프라인
+# 음식 분류 + 양(그램) 추정 + 칼로리 파이프라인
 
-음식 사진 한 장으로 **음식명 → 양(Q1~Q5) → 칼로리·탄단지**를 산출합니다.
-분류·칼로리 분석은 **Gemini 2.5 Flash 전문가 엔진**이 담당하고, 방대한 **영양 DB(약 40,400종)**로 칼로리를 정밀 보정합니다.
+음식 사진 한 장으로 **음식명 → 양(실제 무게 g) → 칼로리·탄단지**를 산출합니다.
+분류·양·칼로리 분석은 **Gemini 3.5 Flash 전문가 엔진**이 담당하고, 방대한 **영양 DB(약 40,400종)**로 칼로리를 정밀 보정합니다.
 
 ```
 사진 ─▶ ① 음식 분류 (Gemini Vision, 멀티음식)
-      └▶ ② 양 추정   (Gemini 기본 / ResNet / 접시기준 면적)
+      └▶ ② 양 추정   (Gemini 그램 추정 / 접시기준 면적)
                           └▶ ③ 칼로리·탄단지 (영양DB 매칭 or Gemini 추정)
 ```
 
-> ℹ️ 초기엔 로컬 YOLOv3 분류기를 썼으나, Gemini 분류가 훨씬 정확해 제거했습니다.
-> ResNet 양추정 모델은 옵션으로 남아 있습니다(`--quantity resnet`).
+> ℹ️ 초기엔 로컬 YOLOv3 분류기와 ResNet 양추정기(Q1~Q5)를 썼으나, Gemini 분류·그램 추정이
+> 실측상 더 정확해 **둘 다 제거**했습니다. 이제 분류·양·칼로리 모두 Gemini가 담당하며 torch가 필요 없습니다.
 
 ## 구성
 
@@ -20,7 +20,6 @@
 | `portion_ref.py` | 접시기준(면적) 양추정 — cv2만, 오프라인 |
 | `build_nutrition_db.py` | 병합 영양DB 생성기 |
 | `evaluate.py` | 정확도 자동 평가 하니스 |
-| `models/quantity/` | ResNet 양추정 가중치 (옵션) |
 | `data/nutrition_db_merged.csv` | 병합 영양DB (약 40,400종, 실제 사용) |
 | `data/food_additions.csv` | 직접 추가 음식 (191종, **최우선** 매칭) |
 | `data/serving_overrides.csv` | 표준 1인분(g) 보정 |
@@ -29,17 +28,11 @@
 
 ## 설치 (최초 1회)
 
-기본 분석은 **Gemini만 있으면 되고 torch가 필요 없습니다.**
-**ResNet 양추정(`--quantity resnet`)을 쓸 때만** Python 3.11 + PyTorch가 필요합니다.
+분류·양·칼로리 모두 Gemini가 담당하므로 **torch가 필요 없습니다.**
 
 ```powershell
 # 필수: 의존성 (google-genai 등)
 pip install -r requirements.txt
-
-# (선택) ResNet 양추정용 전용 venv — torch 필요
-py -3.11 -m venv .venv311
-.\.venv311\Scripts\python -m pip install -r requirements.txt
-.\.venv311\Scripts\python -m pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
 
 # (선택) 영양DB 재빌드 (food_additions/serving_overrides 수정 후)
 python build_nutrition_db.py
@@ -65,7 +58,7 @@ python build_nutrition_db.py
 ## 실행
 
 ```powershell
-# 기본 분석 (분류·양·칼로리 모두 Gemini, 3회 다수결)
+# 기본 분석 (분류·양·칼로리 모두 Gemini, 호출 1회)
 python food_ai.py --image test_images\음식.jpg
 
 # JSON 출력 (서버/연동용)
@@ -75,11 +68,8 @@ python food_ai.py --image test_images\음식.jpg --json
 python food_ai.py --image test_images\음식.jpg --vessel 접시
 python food_ai.py --image test_images\음식.jpg --plate-cm 24
 
-# 양 추정을 로컬 ResNet으로 (torch 필요)
-python food_ai.py --image test_images\음식.jpg --quantity resnet
-
-# 빠르게 (토큰 절약, 변동↑)
-python food_ai.py --image test_images\음식.jpg --gemini-samples 1
+# 더 안정적으로 (self-consistency 다수결, 비용·시간↑)
+python food_ai.py --image test_images\음식.jpg --gemini-samples 3
 
 # 런처(.bat)
 run_food_ai.bat test_images\음식.jpg
@@ -89,31 +79,31 @@ run_food_ai.bat test_images\음식.jpg
 | 옵션 | 기본값 | 설명 |
 |------|--------|------|
 | `--image` | (필수) | 분석할 음식 사진 경로 |
-| `--quantity` | `gemini` | 양 추정: `gemini`(기본) / `resnet`(로컬·torch) / `hybrid` |
-| `--gemini-samples` | `3` | N회 다수결로 안정화(self-consistency). 토큰 아끼려면 `1` |
+| `--gemini-samples` | `1` | N회 다수결로 안정화(self-consistency). 기본 1(3.5-flash는 단발도 안정). 더 안정 원하면 `3` |
 | `--vessel` | - | 그릇 종류(밥공기/국그릇/대접/접시/큰접시/면기…)로 접시기준 양추정 |
 | `--plate-cm` | - | 접시 지름(cm) 직접 지정 → 면적기반 양추정 |
+| `--gram-calib` | `0.88` | 그램 편향 보정계수(과다추정 보정). `1.0`=끔 |
 | `--no-search` | - | Google 검색 그라운딩 끄기(속도↑) |
-| `--device` | `cpu` | ResNet용 `cpu`/`cuda` |
-| `--gemini-model` | `gemini-2.5-flash` | Gemini 모델명 |
+| `--gemini-model` | `gemini-3.5-flash` | Gemini 모델명 (고정확: `gemini-3.1-pro-preview`, 단 비쌈) |
 | `--json` | - | JSON 형식 출력 |
 
 ### 동작 방식
 - **분류·양·칼로리를 Gemini가 한 번에** 처리(한 사진의 여러 음식을 각각 + 합계). `--gemini-samples 3`으로 다수결 안정화.
+- **양(무게) 기반 칼로리** ⭐: Gemini가 음식의 **실제 무게(그램)**를 추정 → **칼로리 = 그램 × 밀도(kcal/g)**. "표준 1인분" 가정 대신 실제 담긴 양에 맞춰 계산(양=Gemini, 밀도=DB로 역할 분리 → 실측상 훨씬 정확).
+- **그램 편향 보정** ⭐: Gemini가 양을 체계적으로 과다추정(실측 대조상 +12~16%)하는 것을 보정계수 `0.88`로 상쇄(`--gram-calib`로 조절).
 - **칼로리 신뢰도 자동 표시**:
   - 🟢 **높음** — 영양DB 매칭(흔한 한식 단품). 칼로리·탄단지 **정확**
   - 🟡 **중간** — 일부 DB 미수록(Gemini 추정 포함)
   - 🔴 **낮음** — 혼합접시·뷔페·미수록 다수 → **대략치**
-- **혼합접시 보정**: 🔴일 때 항목별 1인분 합산이 과대추정되므로, **접시 전체를 통으로 추정**(홀리스틱)해 총칼로리를 보정합니다.
+- **혼합접시 보정**: 🔴일 때 항목별 합산이 과대추정되므로, **접시 전체를 통으로 추정**(홀리스틱)해 총칼로리를 보정합니다.
 
 ### 양 추정 방식 비교
 | 방식 | 특징 |
 |------|------|
-| `gemini`(기본) | 그릇 채움·각도를 종합 판단. **기준물 불필요**, 가장 안정적 |
-| `resnet` | 로컬·오프라인(torch). 근접촬영을 **과대추정**하는 경향이 있어 보조용 |
-| `--vessel`/`--plate-cm` | **면적 실측(접시기준)** — 그릇 크기를 알면 가장 정밀 |
+| 그램 추정(기본) | Gemini가 **실제 무게(g) 추정 → 그램×밀도**로 칼로리. 기준물 불필요, 실측상 가장 정확 |
+| `--vessel`/`--plate-cm` | **면적 실측(접시기준)** — 그릇 크기를 알면 물리적으로 정밀 |
 
-> 양은 2D 사진의 근본 한계로 **±1단계 오차**가 있습니다. 그릇 크기를 알려주면(접시기준) 물리적으로 더 정확해집니다.
+> 남은 한계: 단일 2D 사진은 **스케일(크기) 기준이 없어** 비전형적 크기(특히 초소량·고밀도)에서 오차. 그릇 크기를 알려주면(접시기준) 개선됩니다.
 
 ### 접시기준 양추정 (`portion_ref.py`)
 접시/그릇 지름을 알면 픽셀→cm 환산으로 음식이 차지한 **실제 면적(cm²)** 을 재서 1인분 대비 양을 계산합니다(cv2만, 완전 오프라인).
@@ -149,18 +139,26 @@ run_food_ai.bat test_images\음식.jpg
 
 | 단계 | 정확도 | 근거 |
 |------|:--:|------|
-| ① 분류 | **완전일치 ~96%** (한식 97% · 서양/카페 95%) | 실사진 93장, samples=3, 공정 채점 |
-| ② 양 | **정확 ~89% / ±1단계 96%** | 실사진 27장, 육안 판정 |
-| ③ 칼로리 | DB 매칭 시 정확(🟢) / 혼합접시 홀리스틱 보정(🔴) | 실측(Nutrition5k) 검증 |
+| ① 분류 | **완전일치 ~96%** (한식 97% · 서양/카페 95%) | 실사진 93장, 공정 채점 |
+| ③ 칼로리 | **±25% 이내 65% · MAPE 35% · r 0.96** | 실측 무게·칼로리(SimpleFood45) |
 
-> 실측 검증(Google Nutrition5k, 실제 무게·칼로리): 혼합접시의 칼로리 과대추정(합산 방식)을 홀리스틱 보정으로 크게 완화했습니다. 다만 정밀 그램 단위 양 추정은 단일 2D 사진의 근본 한계가 있습니다.
+**칼로리 정확도 개선 여정 (실측 기준)** — 그램방식 + 3.5-flash 도입으로 대폭 향상:
+| 방식 | MAPE | ±25% 이내 |
+|------|:--:|:--:|
+| Q비율 방식(초기) | 107% | 5% |
+| 그램 방식 | 53% | 42% |
+| **+ gemini-3.5-flash** | **35%** | **65%** |
+| **+ 그램 편향 보정(0.88)** | 정상분량 투영 14%* | 88%* |
+
+> \* 보정계수는 검증셋에서 도출한 값이라 위 14%/88%는 in-sample 투영치(정상분량 ≥30kcal 기준). 편향 방향은 여러 데이터셋·모델에서 일치하나 정확한 배율은 out-of-sample 재검증 권장.
+> 실측 검증: SimpleFood45(단품 실제 무게)·Nutrition5k(혼합접시). 남은 오차는 초소량·비전형 크기(스케일 모호성)에 집중되며, 정상 크기 음식은 대체로 ±10~15% 이내.
 
 ## 정확도 평가 (`evaluate.py`)
-라벨(`data/eval_labels_all.csv`: `image,food,q`)로 분류/양 정확도를 자동 측정합니다.
+분류 정확도는 라벨셋(`data/eval_labels_all.csv`: `image,food`)으로, 칼로리 정확도는 실측셋(`--dataset`)으로 측정합니다.
 ```powershell
-python evaluate.py --labels data\eval_labels_all.csv                    # 기본(samples=3)
-python evaluate.py --labels data\eval_labels_all.csv --gemini-samples 1 # 빠르게
-python evaluate.py --labels data\eval_labels_all.csv --quantity resnet  # 양=ResNet
+python evaluate.py --labels data\eval_labels_all.csv                    # 분류(기본 samples=1)
+python evaluate.py --labels data\eval_labels_all.csv --gemini-samples 3 # 더 안정적으로
+python evaluate.py --dataset path\to\truth.csv                          # 칼로리 MAPE(실측 대조)
 ```
 - 완전일치 / 같은 음식군 / 오답 목록 출력. 빈 예측(API 실패)은 오답이 아닌 '미응답'으로 분리 집계.
 
@@ -182,14 +180,13 @@ python evaluate.py --labels data\eval_labels_all.csv --quantity resnet  # 양=Re
 📷 이미지: test_images/음식.jpg
 
 [1] 🍽 음식 : 비빔밥   [Gemini 전문가 분석]
-    ⚖ 양: 기준(1인분) (Q4, ~100.0%, gemini-expert)
-    🔥 칼로리: 639.0 kcal [DB]   (450.0 g)
+    ⚖ 양: 약 450g (1인분의 ~100%)  [gemini-grams]
+    🔥 칼로리: 639.0 kcal [DB]   (450.0 g, 기준 639.0 kcal/450.0g)
        탄수 95.0g · 단백 18.0g · 지방 15.0g · 나트륨 900.0mg
 
   🟢 칼로리 신뢰도: 높음 — 전부 DB 매칭(정확)
 ```
 
 ## 런타임 메모
-- 기본 경로(Gemini)는 torch 불필요. ResNet 양추정만 `.venv311`(Python 3.11 + PyTorch CPU) 필요.
-- ResNet 가중치는 torch 1.7 시절 것이라 로딩 시 `weights_only=False` 처리.
+- 분류·양·칼로리 모두 Gemini가 담당 — **torch 불필요**(로컬 YOLO·ResNet 제거됨).
 - 한글 경로 이미지 지원(`imread_unicode`, cv2 imdecode).
