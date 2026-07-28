@@ -231,8 +231,8 @@ class Aura extends Control:
 	var grow := 0.0
 	var fade := 1.0
 	func _draw() -> void:
-		var r: float = lerp(30.0, 52.0, clampf(grow, 0.0, 1.0))
+		var r: float = lerp(60.0, 96.0, clampf(grow, 0.0, 1.0))
 		var pulse := 1.0 + 0.05 * sin(grow * 30.0)
 		draw_circle(Vector2.ZERO, r * pulse, Color(color, 0.14 * fade))
-		draw_arc(Vector2.ZERO, r * pulse, 0.0, TAU, 40, Color(color, 0.9 * fade), 5.0)
-		draw_arc(Vector2.ZERO, r * pulse * 0.82, 0.0, TAU, 40, Color(color, 0.45 * fade), 3.0)
+		draw_arc(Vector2.ZERO, r * pulse, 0.0, TAU, 48, Color(color, 0.9 * fade), 7.0)
+		draw_arc(Vector2.ZERO, r * pulse * 0.82, 0.0, TAU, 48, Color(color, 0.45 * fade), 4.0)

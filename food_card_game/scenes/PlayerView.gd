@@ -10,9 +10,17 @@ var _ox := 0.0
 var _oy := 0.0
 var _idle := 0.0
 var _t := 0.0
+var _spr := "hero"   # 현재 캐릭터 도트 스프라이트 (전환 구조용)
 
 func _ready() -> void:
 	custom_minimum_size = Vector2(200, 222)
+
+## 유저 캐릭터 전환 — Pixels.gd 스프라이트 이름 지정
+func set_sprite(name: String) -> void:
+	if name == "" or not (name in PixelsData.ICONS):
+		name = "hero"   # 없는 스프라이트면 기본값
+	_spr = name
+	queue_redraw()
 
 func _process(delta: float) -> void:
 	_t += delta
@@ -23,9 +31,9 @@ func _draw() -> void:
 	var s := size
 	draw_set_transform(Vector2(_ox, _oy + _idle), 0.0, Vector2.ONE)
 	var rect := Rect2(0, 0, s.x, s.y)
-	PixelsData.draw_grid(self, PixelsData.icon("hero"), PixelsData.PAL, rect)
+	PixelsData.draw_grid(self, PixelsData.icon(_spr), PixelsData.PAL, rect)
 	if _flash > 0.0:
-		PixelsData.draw_grid(self, PixelsData.icon("hero"), PixelsData.PAL, rect, Color(1, 1, 1, 1), Color(_flash_col.r, _flash_col.g, _flash_col.b, _flash))
+		PixelsData.draw_grid(self, PixelsData.icon(_spr), PixelsData.PAL, rect, Color(1, 1, 1, 1), Color(_flash_col.r, _flash_col.g, _flash_col.b, _flash))
 
 func play_attack() -> void:
 	var t := create_tween()

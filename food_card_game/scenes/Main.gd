@@ -416,6 +416,7 @@ func start_battle() -> void:
 	boss_view.set_sprite(String(b.spr))
 	boss_view.set_texture(_boss_tex.get(String(b.get("tex", "")), null))
 	boss_view.reset()
+	character_view.set_sprite(Save.char_id)   # 저장된 유저 캐릭터 적용 (전환 구조)
 	boss_name_lbl.text = b.name
 	warn_lbl.text = ""
 	_log("[b]%s[/b] 등장! 카드로 물리쳐라!" % b.name)

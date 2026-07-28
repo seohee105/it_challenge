@@ -8,6 +8,7 @@ var best_streak := 0
 var streak := 0
 var coins := 0
 var levels := [1, 1, 1]
+var char_id := "hero"   # 선택된 유저 캐릭터 (전환 구조용, 기본 hero)
 
 func _ready() -> void:
 	var cf := ConfigFile.new()
@@ -18,6 +19,7 @@ func _ready() -> void:
 		var lv = cf.get_value("stats", "levels", [1, 1, 1])
 		if lv is Array and lv.size() == 3:
 			levels = [int(lv[0]), int(lv[1]), int(lv[2])]
+		char_id = String(cf.get_value("stats", "char_id", "hero"))
 
 func record_win(reward: int) -> void:
 	wins += 1
@@ -40,10 +42,15 @@ func upgrade(i: int, price: int) -> bool:
 	_save()
 	return true
 
+func set_char(id: String) -> void:
+	char_id = id
+	_save()
+
 func _save() -> void:
 	var cf := ConfigFile.new()
 	cf.set_value("stats", "wins", wins)
 	cf.set_value("stats", "best_streak", best_streak)
 	cf.set_value("stats", "coins", coins)
 	cf.set_value("stats", "levels", levels)
+	cf.set_value("stats", "char_id", char_id)
 	cf.save(PATH)
