@@ -2,7 +2,7 @@
 ## 보스별 팔레트 테마: 0=버거(그릴 성채) 1=슈가퀸(캔디 궁전) 2=샐러드킹(초록 정원)
 extends Control
 
-const T := 40.0
+const T := 26.0
 var _t := 0.0
 var _theme := 0
 
@@ -70,9 +70,9 @@ func _draw() -> void:
 				bc = pal.b_hi
 			elif h == 1:
 				bc = pal.b_lo
-			draw_rect(Rect2(x + 2, y + 2, T - 3, T - 3), bc)
+			draw_rect(Rect2(x + 1, y + 1, T - 2, T - 2), bc)
 			if h == 4:   # 금 간 벽돌
-				draw_line(Vector2(x + 8, y + 6), Vector2(x + 18, y + 22), pal.crack, 2.0)
+				draw_line(Vector2(x + 5, y + 4), Vector2(x + 12, y + 16), pal.crack, 1.5)
 			x += T
 		y += T
 		row += 1
@@ -98,7 +98,7 @@ func _draw() -> void:
 		var fx := 0.0
 		while fx < s.x:
 			var fc: Color = pal.f_a if (int(floor(fx / T)) + frow) % 2 == 0 else pal.f_b
-			draw_rect(Rect2(fx + 2, fy + 2, T - 3, T - 3), fc)
+			draw_rect(Rect2(fx + 1, fy + 1, T - 2, T - 2), fc)
 			fx += T
 		fy += T
 		frow += 1
