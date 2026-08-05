@@ -47,7 +47,9 @@ var boss := {}
 var arena_bg: Control
 var cd := [0.0, 0.0, 0.0]
 var clevel := [1, 1, 1]   # 카드 강화 레벨 (Save에서)
-var _boss_tex := {}       # 보스 이미지 텍스처
+var _boss_tex := {}       # 보스 이미지 텍스처 (대기)
+var _boss_tex_enrage := {} # 보스 분노 프레임
+var _boss_tex_defeat := {} # 보스 패배 프레임
 var _atk_tex := {}        # 보스 공격 투사체 이미지
 var uses := { "carb": 0, "protein": 0, "fat": 0 }
 var balanced := false
@@ -83,8 +85,11 @@ func _ready() -> void:
 	var sv0 := get_node_or_null("/root/Save")
 	if sv0:
 		clevel = [int(sv0.levels[0]), int(sv0.levels[1]), int(sv0.levels[2])]
-	for n in ["burger", "queen", "king"]:
-		_boss_tex[n] = _load_tex("res://assets/%s.png" % n)
+	var boss_files := { "burger": "boss_burger", "queen": "boss_queen", "king": "boss_salad" }
+	for n in boss_files:
+		_boss_tex[n] = _load_tex("res://assets/%s.png" % boss_files[n])
+		_boss_tex_enrage[n] = _load_tex("res://assets/%s_enrage.png" % boss_files[n])
+		_boss_tex_defeat[n] = _load_tex("res://assets/%s_defeat.png" % boss_files[n])
 	for n in ["fries", "cola", "cheese", "lollipop", "cake", "donut", "cream", "fork", "bacon", "dressing"]:
 		_atk_tex[n] = _load_tex("res://assets/atk_%s.png" % n)
 	_build_ui()
@@ -414,7 +419,9 @@ func start_battle() -> void:
 	running = true
 	boss_hp_bar.max_value = int(b.hp)
 	boss_view.set_sprite(String(b.spr))
-	boss_view.set_texture(_boss_tex.get(String(b.get("tex", "")), null))
+	var btex := String(b.get("tex", ""))
+	boss_view.set_texture(_boss_tex.get(btex, null))
+	boss_view.set_state_textures(_boss_tex_enrage.get(btex, null), _boss_tex_defeat.get(btex, null))
 	boss_view.reset()
 	character_view.set_sprite(Save.char_id)   # 저장된 유저 캐릭터 적용 (전환 구조)
 	boss_name_lbl.text = b.name
@@ -504,9 +511,11 @@ func _use_card(i: int) -> void:
 			character_view.play_defense()
 			sfx_play("defend")
 			player.guard = CardDefs.eff_dur(i, lv)
-			var cc := _center(character_view)
-			FxScript.aura(fx_layer, cc, Color("6be37a"), player.guard)
-			FxScript.popup(fx_layer, cc, "방어!", Color("6be37a"))
+			var pr: Rect2 = character_view.sprite_rect_global()
+			var cc := pr.get_center()
+			var rad: float = pr.size.y * 0.56   # 캐릭터를 감싸는 크기
+			FxScript.aura(fx_layer, cc, Color("6be37a"), player.guard, rad)
+			FxScript.popup(fx_layer, pr.position + Vector2(pr.size.x * 0.5, -8.0), "방어!", Color("6be37a"))
 			_log("[color=#5bb87a]뱃살 쿵[/color] — %.1f초간 피해 70%% 감소!" % player.guard)
 
 func _boss_attack() -> void:
@@ -650,6 +659,12 @@ func _update_hud() -> void:
 		fill.bg_color = Color("d24b4b") if ratio < 0.3 else (Color("e5a53c") if ratio < 0.6 else Color("6bbf59"))
 	boss_hp_bar.value = boss.hp
 	boss_hp_lbl.text = "%d / %d" % [boss.hp, boss.max_hp]
+	# 분노: HP 40% 이하 진입 시 1회 (분노 프레임 + 공격 속도 증가)
+	if running and boss.has("max_hp") and not boss.get("enraged", false) and boss.hp > 0 and boss.hp <= int(boss.max_hp) * 0.4:
+		boss["enraged"] = true
+		boss.interval = maxf(1.2, float(boss.interval) * 0.8)
+		boss_view.set_enraged()
+		_log("[color=#ff5a5a][b]%s 분노![/b][/color] 공격이 거세진다!" % boss.name)
 	if player.stun > 0.0:
 		guard_lbl.text = "기절 %.1f초!" % player.stun
 		guard_lbl.add_theme_color_override("font_color", Color("ff8a8a"))

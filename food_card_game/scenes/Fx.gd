@@ -212,9 +212,10 @@ static func _proj_shape(style: String) -> String:
 		_: return "circle"
 
 # 방어막 링 (일정 시간 유지 후 사라짐)
-static func aura(parent: Node, pos: Vector2, color: Color, dur: float) -> void:
+static func aura(parent: Node, pos: Vector2, color: Color, dur: float, radius := 96.0) -> void:
 	var a := Aura.new()
 	a.color = color
+	a.rmax = radius
 	a.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	a.z_index = 88
 	parent.add_child(a)
@@ -230,8 +231,9 @@ class Aura extends Control:
 	var color := Color("6be37a")
 	var grow := 0.0
 	var fade := 1.0
+	var rmax := 96.0
 	func _draw() -> void:
-		var r: float = lerp(60.0, 96.0, clampf(grow, 0.0, 1.0))
+		var r: float = lerp(rmax * 0.64, rmax, clampf(grow, 0.0, 1.0))
 		var pulse := 1.0 + 0.05 * sin(grow * 30.0)
 		draw_circle(Vector2.ZERO, r * pulse, Color(color, 0.14 * fade))
 		draw_arc(Vector2.ZERO, r * pulse, 0.0, TAU, 48, Color(color, 0.9 * fade), 7.0)

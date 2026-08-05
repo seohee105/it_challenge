@@ -8,7 +8,7 @@ var best_streak := 0
 var streak := 0
 var coins := 0
 var levels := [1, 1, 1]
-var char_id := "hero"   # 선택된 유저 캐릭터 (전환 구조용, 기본 hero)
+var char_id := "player"   # 선택된 유저 캐릭터 (전환 구조용, 기본 player)
 
 func _ready() -> void:
 	var cf := ConfigFile.new()
@@ -19,7 +19,7 @@ func _ready() -> void:
 		var lv = cf.get_value("stats", "levels", [1, 1, 1])
 		if lv is Array and lv.size() == 3:
 			levels = [int(lv[0]), int(lv[1]), int(lv[2])]
-		char_id = String(cf.get_value("stats", "char_id", "hero"))
+		char_id = String(cf.get_value("stats", "char_id", "player"))
 
 func record_win(reward: int) -> void:
 	wins += 1
