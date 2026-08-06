@@ -1,17 +1,2 @@
-# 비밀키 — 절대 커밋 금지
-.gemini_key
-*.key
-
-# 파이썬
-__pycache__/
-*.pyc
-.venv311/
-
-# 런타임 산출물 — 재생성 가능
-eval_*.txt
-
-# 참고: ResNet 가중치(models/quantity/weights/*.pth, 86MB)는 실행에 필요하므로 포함함
-# (GitHub 50MB 경고는 뜨지만 100MB 한계 이내)
-n5k_*.txt
-qty_*.txt
-*_result.txt
+.godot/
+*.translation
