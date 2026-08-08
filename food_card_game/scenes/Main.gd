@@ -406,6 +406,9 @@ func start_battle() -> void:
 	if overlay and is_instance_valid(overlay):
 		overlay.queue_free()
 		overlay = null
+	var mus := get_node_or_null("/root/Music")
+	if mus:
+		mus.play_battle()   # 재도전 시 전투곡 복귀
 	var bi: int = randi() % BOSSES.size()
 	var b: Dictionary = BOSSES[bi]
 	if arena_bg:
@@ -521,6 +524,7 @@ func _use_card(i: int) -> void:
 func _boss_attack() -> void:
 	var atk: Dictionary = boss.next
 	boss.next = boss.attacks[randi() % boss.attacks.size()]   # 다음 공격 예고 갱신
+	boss_view.play_attack()   # 보스 돌진 모션
 	var kind := String(atk.kind)
 	var dmg := int(atk.get("dmg", 0))
 	if kind == "multi":
@@ -568,7 +572,7 @@ func _boss_attack() -> void:
 
 func _throw_item(icon: String, from: Vector2, to: Vector2) -> void:
 	var node: Control
-	var sz := 72.0
+	var sz := 54.0
 	var tex = _atk_tex.get(icon)
 	if tex:
 		var tr := TextureRect.new()
@@ -579,7 +583,7 @@ func _throw_item(icon: String, from: Vector2, to: Vector2) -> void:
 		var spr := PixelSpriteScene.new()
 		spr.setup(PixelsData.icon(icon), PixelsData.PAL)
 		node = spr
-		sz = 48.0
+		sz = 40.0
 	node.size = Vector2(sz, sz)
 	node.pivot_offset = Vector2(sz * 0.5, sz * 0.5)
 	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -683,6 +687,7 @@ func sfx_play(n: String) -> void:
 
 func _shoot(from: Vector2, to: Vector2, color: Color, style := "circle") -> void:
 	var p := FxScript.make_proj(color, style)
+	p.scale = Vector2(0.78, 0.78)   # 에너지 샷 작게
 	fx_layer.add_child(p)
 	p.position = from
 	var t := p.create_tween()
@@ -722,6 +727,12 @@ func _end_battle(win: bool) -> void:
 			sv.record_loss(reward)
 	if win:
 		boss_view.set_defeated()
+	var mus := get_node_or_null("/root/Music")
+	if mus:
+		if win:
+			mus.play_win()
+		else:
+			mus.play_lose()
 
 	overlay = Control.new()
 	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
