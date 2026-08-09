@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C \"/c/Users/sunny/Desktop/학교/성신/기타/버프업 다이어트/던전/salad_garden_godot_최최최종\" add salad_garden/scripts/Player.gd)",
+      "Bash(git -C '/c/Users/sunny/Desktop/학교/성신/기타/버프업 다이어트/던전/salad_garden_godot_최최최종' commit -m ' *)",
+      "Bash(git -C \"/c/Users/sunny/Desktop/학교/성신/기타/버프업 다이어트/던전/salad_garden_godot_최최최종\" log --oneline -5)",
+      "PowerShell(& \"C:\\\\Users\\\\sunny\\\\Desktop\\\\Godot_v4.7-stable_win64.exe\" --headless --path $proj res://scenes/Level1.tscn --quit-after 600 2>&1)",
+      "PowerShell($proj = \"c:\\\\Users\\\\sunny\\\\Desktop\\\\�б�\\\\����\\\\��Ÿ\\\\������ ���̾�Ʈ\\\\����\\\\salad_garden_godot_��������\\\\salad_garden\")"
+    ]
+  }
+}
