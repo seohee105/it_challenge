@@ -1,0 +1,49 @@
+[gd_scene format=3 uid="uid://dcdtyri7wyj4r"]
+
+[ext_resource type="Script" uid="uid://cbj6j1mv5so2f" path="res://Scenes/GameOver.gd" id="1_543kh"]
+[ext_resource type="Texture2D" uid="uid://bbgvo0tx6rcp8" path="res://Sprites/gameover화면.png" id="1_re8an"]
+
+[node name="GameOver" type="Control" unique_id=1578973923]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_543kh")
+
+[node name="Background" type="TextureRect" parent="." unique_id=1491913469]
+layout_mode = 0
+offset_left = -20.0
+offset_top = -10.0
+offset_right = 2344.0
+offset_bottom = 1342.0
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("1_re8an")
+
+[node name="Label" type="Label" parent="." unique_id=1354063139]
+layout_mode = 0
+offset_left = 424.0
+offset_top = 214.0
+offset_right = 768.0
+offset_bottom = 297.0
+theme_override_colors/font_color = Color(0, 0.03137255, 0, 1)
+theme_override_font_sizes/font_size = 60
+text = "GAME OVER"
+
+[node name="RetryButton" type="Button" parent="." unique_id=121817290]
+layout_mode = 0
+offset_left = 606.0
+offset_top = 496.0
+offset_right = 946.0
+offset_bottom = 565.0
+flat = true
+
+[node name="HomeButton" type="Button" parent="." unique_id=1597316399]
+layout_mode = 0
+offset_left = 196.0
+offset_top = 490.0
+offset_right = 547.0
+offset_bottom = 560.0
+flat = true
+
+[connection signal="pressed" from="RetryButton" to="." method="_on_retry_button_pressed"]
+[connection signal="pressed" from="HomeButton" to="." method="_on_home_button_pressed"]

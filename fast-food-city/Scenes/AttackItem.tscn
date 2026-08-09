@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://ou1ef1bsh2g6"]
+
+[ext_resource type="Script" uid="uid://b83uurmq1d83t" path="res://AttackItem.gd" id="1_hyv33"]
+[ext_resource type="Texture2D" uid="uid://bx7bu5jtsrlsx" path="res://Sprites/공격.png" id="2_2hr8i"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_2dim1"]
+radius = 166.01205
+
+[node name="AttackItem" type="Area2D" unique_id=1111032665]
+script = ExtResource("1_hyv33")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1242732719]
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("2_2hr8i")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1833441968]
+position = Vector2(1, 9)
+shape = SubResource("CircleShape2D_2dim1")
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]

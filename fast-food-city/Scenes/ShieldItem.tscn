@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://cule1p4rix3sc"]
+
+[ext_resource type="Script" uid="uid://b4f4idfj8yig8" path="res://ShieldItem.gd" id="1_8ga25"]
+[ext_resource type="Texture2D" uid="uid://dkj2cga46tfvl" path="res://Sprites/방어.png" id="2_d006c"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_51err"]
+radius = 74.431175
+
+[node name="ShieldItem" type="Area2D" unique_id=786932083]
+script = ExtResource("1_8ga25")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1783694727]
+position = Vector2(-4.000002, -2.0000076)
+scale = Vector2(0.2, 0.212)
+texture = ExtResource("2_d006c")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2024829150]
+position = Vector2(-4, -1)
+scale = Vector2(0.5, 0.5)
+shape = SubResource("CircleShape2D_51err")
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]

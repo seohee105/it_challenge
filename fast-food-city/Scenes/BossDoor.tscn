@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://dkv1f4bli3bfo"]
+
+[ext_resource type="Script" uid="uid://cbkhae1eyc5gx" path="res://BossDoor.gd" id="1_la15a"]
+[ext_resource type="Texture2D" uid="uid://ccrk0i73c8sye" path="res://Sprites/door.png" id="2_gn2wc"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_2dim1"]
+size = Vector2(598, 722)
+
+[node name="BossDoor" type="Area2D" unique_id=1649586609]
+script = ExtResource("1_la15a")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=701424472]
+texture = ExtResource("2_gn2wc")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=878208948]
+position = Vector2(14, 125)
+shape = SubResource("RectangleShape2D_2dim1")
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]

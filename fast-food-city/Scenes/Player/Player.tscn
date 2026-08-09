@@ -1,0 +1,56 @@
+[gd_scene format=3 uid="uid://dt2ym00anh8fb"]
+
+[ext_resource type="Script" uid="uid://d1hl0dekro4aw" path="res://Scenes/Player/Player.gd" id="1_ft8w5"]
+[ext_resource type="Texture2D" uid="uid://b35xjl0oe1wh5" path="res://Sprites/boy옆모습.png" id="2_h54ih"]
+[ext_resource type="Texture2D" uid="uid://bx7bu5jtsrlsx" path="res://Sprites/공격.png" id="3_h54ih"]
+[ext_resource type="Texture2D" uid="uid://cgq1fu1k0ljqr" path="res://Sprites/캐릭터방어.png" id="4_ude3g"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_51err"]
+size = Vector2(83.75, 86.5)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_2dim1"]
+size = Vector2(31.25, 42)
+
+[node name="Player" type="CharacterBody2D" unique_id=1862314290]
+position = Vector2(-414, 476)
+script = ExtResource("1_ft8w5")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1615951905]
+position = Vector2(5.9999866, 25.000015)
+scale = Vector2(0.13962388, 0.13729407)
+texture = ExtResource("2_h54ih")
+region_filter_clip_enabled = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1456936686]
+position = Vector2(-2.875, 55.75)
+shape = SubResource("RectangleShape2D_51err")
+
+[node name="LifeTimer" type="Timer" parent="." unique_id=1113054127]
+
+[node name="SwordPivot" type="Marker2D" parent="." unique_id=2127073409]
+position = Vector2(10, -8)
+
+[node name="Sword" type="Sprite2D" parent="SwordPivot" unique_id=1678593945]
+visible = false
+position = Vector2(49.312492, 35.25)
+scale = Vector2(0.13946946, 0.15156251)
+texture = ExtResource("3_h54ih")
+
+[node name="SwordHitbox" type="Area2D" parent="SwordPivot" unique_id=448269282]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="SwordPivot/SwordHitbox" unique_id=957393993]
+visible = false
+position = Vector2(49.375, 44)
+shape = SubResource("RectangleShape2D_2dim1")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1206810202]
+speed_scale = 0.25
+
+[node name="ShieldEffect" type="Sprite2D" parent="." unique_id=949296817]
+visible = false
+z_index = -5
+position = Vector2(-4.9999886, 2.0000095)
+scale = Vector2(0.21329756, 0.24169923)
+texture = ExtResource("4_ude3g")
+
+[connection signal="timeout" from="LifeTimer" to="." method="_on_life_timer_timeout"]

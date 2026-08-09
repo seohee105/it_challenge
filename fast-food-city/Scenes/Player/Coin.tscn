@@ -1,0 +1,5 @@
+[gd_scene format=3 uid="uid://dg0drqmdcum3j"]
+
+[node name="Coin" type="Area2D" unique_id=894233505]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1357551429]
