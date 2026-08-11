@@ -2,7 +2,7 @@
 class_name PlayerView
 extends Control
 
-const MAX_SCALE := 2.2   # 도트 배율 상한 (작을수록 픽셀이 촘촘)
+const MAX_SCALE := 1.0   # 고해상도 시트 → 네이티브 배율(선명)
 
 var _tex_idle: Texture2D
 var _tex_attack: Texture2D
@@ -50,7 +50,7 @@ func sprite_rect_global() -> Rect2:
 		return get_global_rect()
 	var tw := float(tex.get_width())
 	var th := float(tex.get_height())
-	var sc: float = minf(min(s.x / tw, s.y / th), MAX_SCALE)
+	var sc: float = minf(s.y / th, MAX_SCALE)
 	var dw := tw * sc
 	var dh := th * sc
 	return Rect2(global_position + Vector2((s.x - dw) * 0.5, s.y - dh - 6.0), Vector2(dw, dh))
@@ -76,7 +76,7 @@ func _draw() -> void:
 		return
 	var tw := float(tex.get_width())
 	var th := float(tex.get_height())
-	var sc: float = minf(min(s.x / tw, s.y / th), MAX_SCALE)
+	var sc: float = minf(s.y / th, MAX_SCALE)
 	var dw := tw * sc
 	var dh := th * sc
 	var feet := Vector2(s.x * 0.5, s.y - 6.0)          # 발 밑 피벗

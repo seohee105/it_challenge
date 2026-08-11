@@ -46,6 +46,13 @@ func set_char(id: String) -> void:
 	char_id = id
 	_save()
 
+func spend(n: int) -> bool:
+	if coins < n:
+		return false
+	coins -= n
+	_save()
+	return true
+
 func _save() -> void:
 	var cf := ConfigFile.new()
 	cf.set_value("stats", "wins", wins)

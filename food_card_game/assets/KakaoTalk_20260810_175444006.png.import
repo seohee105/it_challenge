@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bvuhg06p7v1u3"
-path="res://.godot/imported/player_attack.png-3153a08e96039331894af2ec55a92794.ctex"
+uid="uid://c70ic4b4viwue"
+path="res://.godot/imported/KakaoTalk_20260810_175444006.png-f75241b1f2a6ed5d076ab9a028a87324.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/player_attack.png"
-dest_files=["res://.godot/imported/player_attack.png-3153a08e96039331894af2ec55a92794.ctex"]
+source_file="res://assets/KakaoTalk_20260810_175444006.png"
+dest_files=["res://.godot/imported/KakaoTalk_20260810_175444006.png-f75241b1f2a6ed5d076ab9a028a87324.ctex"]
 
 [params]
 

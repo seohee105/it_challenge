@@ -737,59 +737,123 @@ func _end_battle(win: bool) -> void:
 	overlay = Control.new()
 	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var dim := ColorRect.new()
-	dim.color = Color(0, 0, 0, 0.62)
+	dim.color = Color(0, 0, 0, 0.55)
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	overlay.add_child(dim)
+
+	# ── 사진 스타일 다이얼로그 (흰 이중 테두리 패널)
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.add_child(center)
+
+	var outer := PanelContainer.new()      # 바깥 흰 테두리
+	var osb := StyleBoxFlat.new()
+	osb.bg_color = Color("ffffff")
+	osb.set_corner_radius_all(26)
+	osb.shadow_color = Color(0, 0, 0, 0.4)
+	osb.shadow_size = 12
+	osb.set_content_margin_all(6)
+	outer.add_theme_stylebox_override("panel", osb)
+	center.add_child(outer)
+
+	var panel := PanelContainer.new()      # 안쪽 크림 + 라벤더 라인
+	var psb := StyleBoxFlat.new()
+	psb.bg_color = Color("f7f3e9")
+	psb.set_corner_radius_all(20)
+	psb.border_color = Color("bcc8e6")
+	psb.set_border_width_all(3)
+	psb.set_content_margin_all(36.0)
+	panel.add_theme_stylebox_override("panel", psb)
+	outer.add_child(panel)
+
 	var box := VBoxContainer.new()
-	box.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	box.add_theme_constant_override("separation", 16)
 	box.alignment = BoxContainer.ALIGNMENT_CENTER
-	overlay.add_child(box)
+	panel.add_child(box)
 
-	if win:
-		var clear := Label.new()
-		clear.text = "CLEAR!"
-		clear.add_theme_font_size_override("font_size", 68)
-		clear.add_theme_color_override("font_color", Color("ffe082"))
-		clear.add_theme_color_override("font_outline_color", INK)
-		clear.add_theme_constant_override("outline_size", 8)
-		clear.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		box.add_child(clear)
-		var sub := Label.new()
-		sub.text = "%s 격파!" % boss.name
-		sub.add_theme_font_size_override("font_size", 24)
-		sub.add_theme_color_override("font_color", Color("cfd8e3"))
-		sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		box.add_child(sub)
-	else:
-		var title := Label.new()
-		title.text = "GAME OVER"
-		title.add_theme_font_size_override("font_size", 52)
-		title.add_theme_color_override("font_color", Color("e98a8a"))
-		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		box.add_child(title)
+	# 결과 (작게)
+	var res := Label.new()
+	res.text = "클리어!" if win else "게임 오버"
+	res.add_theme_font_size_override("font_size", 34)
+	res.add_theme_color_override("font_color", Color("f2b134") if win else Color("e05a5a"))
+	res.add_theme_color_override("font_outline_color", Color("3a2f22"))
+	res.add_theme_constant_override("outline_size", 4)
+	res.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(res)
 
-	var coin_lbl := Label.new()
-	coin_lbl.text = "+%d 코인   (보유 %d)" % [reward, (int(sv.coins) if sv else reward)]
-	coin_lbl.add_theme_font_size_override("font_size", 20)
-	coin_lbl.add_theme_color_override("font_color", Color("ffd45e"))
-	coin_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	box.add_child(coin_lbl)
+	# 멘트(사진 동일): [코인] 코인 N개가 필요합니다 [코인]
+	var cost := 5
+	var have: int = int(sv.coins) if sv else 0
+	var crow := HBoxContainer.new()
+	crow.alignment = BoxContainer.ALIGNMENT_CENTER
+	crow.add_theme_constant_override("separation", 14)
+	box.add_child(crow)
+	crow.add_child(_coin_icon(40))
+	var msg := Label.new()
+	msg.text = "코인 %d개가 필요합니다" % cost
+	msg.add_theme_font_size_override("font_size", 30)
+	msg.add_theme_color_override("font_color", Color("585858"))
+	crow.add_child(msg)
+	crow.add_child(_coin_icon(40))
 
-	var btn := Button.new()
-	btn.text = "다시 도전"
-	btn.add_theme_font_size_override("font_size", 22)
-	btn.custom_minimum_size = Vector2(220, 52)
-	btn.pressed.connect(start_battle)
-	box.add_child(btn)
+	var have_lbl := Label.new()
+	have_lbl.text = "보유 코인 %d" % have
+	have_lbl.add_theme_font_size_override("font_size", 18)
+	have_lbl.add_theme_color_override("font_color", Color("9a8a6a"))
+	have_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(have_lbl)
 
-	var t_btn := Button.new()
-	t_btn.text = "타이틀 · 카드 강화"
-	t_btn.add_theme_font_size_override("font_size", 20)
-	t_btn.custom_minimum_size = Vector2(220, 46)
-	t_btn.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/Title.tscn"))
-	box.add_child(t_btn)
+	# 버튼(사진 동일): 사용하기(초록) / 취소(빨강)
+	var brow := HBoxContainer.new()
+	brow.alignment = BoxContainer.ALIGNMENT_CENTER
+	brow.add_theme_constant_override("separation", 22)
+	box.add_child(brow)
+	var use_btn := _end_button("사용하기", Color("7ac74f"), Color("4e8a2f"))
+	if have < cost:
+		use_btn.disabled = true
+		use_btn.modulate = Color(0.7, 0.7, 0.7)
+	use_btn.pressed.connect(func() -> void:
+		var s := get_node_or_null("/root/Save")
+		if s and s.spend(cost):
+			start_battle()
+	)
+	brow.add_child(use_btn)
+	var cancel := _end_button("취소", Color("e46b6b"), Color("b23e3e"))
+	cancel.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/Title.tscn"))
+	brow.add_child(cancel)
 	add_child(overlay)
+
+func _coin_icon(sz: int) -> Control:
+	var tr := TextureRect.new()
+	tr.texture = load("res://assets/coin.png")
+	tr.custom_minimum_size = Vector2(sz, sz)
+	tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return tr
+
+func _end_button(text: String, base: Color, dark: Color) -> Button:
+	var b := Button.new()
+	b.text = text
+	b.focus_mode = Control.FOCUS_NONE
+	b.custom_minimum_size = Vector2(180, 64)
+	b.add_theme_font_size_override("font_size", 28)
+	b.add_theme_color_override("font_color", Color.WHITE)
+	b.add_theme_color_override("font_hover_color", Color.WHITE)
+	b.add_theme_color_override("font_pressed_color", Color.WHITE)
+	b.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.45))
+	b.add_theme_constant_override("outline_size", 5)
+	for st in ["normal", "hover", "pressed"]:
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = base.lightened(0.08) if st == "hover" else base
+		sb.set_corner_radius_all(14)
+		sb.border_color = dark
+		sb.border_width_left = 2
+		sb.border_width_right = 2
+		sb.border_width_top = 2
+		sb.border_width_bottom = 2 if st == "pressed" else 7
+		sb.content_margin_top = 6 if st == "pressed" else 2
+		b.add_theme_stylebox_override(st, sb)
+	return b
 
 # ────────────────────────────── 개발용 자동 플레이
 func _run_autotest() -> void:
