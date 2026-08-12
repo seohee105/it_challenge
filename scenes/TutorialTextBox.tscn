@@ -1,0 +1,60 @@
+[gd_scene format=3 uid="uid://duy6ejobm6ml3"]
+
+[ext_resource type="FontFile" uid="uid://bsshirb842jw5" path="res://Limgul13.ttf" id="1_etf66"]
+[ext_resource type="Script" uid="uid://cvgbjt4wpmt0m" path="res://scenes/TutorialTextBox.gd" id="1_kx5fi"]
+[ext_resource type="FontFile" uid="uid://yh3fsg373u4w" path="res://VCR_OSD_MONO_1.001.ttf" id="2_kx5fi"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3bnof"]
+bg_color = Color(0.09019608, 0.09019608, 0.09019608, 0.72156864)
+border_color = Color(0.9955804, 0.99558026, 0.99558026, 1)
+corner_radius_top_left = 48
+corner_radius_top_right = 48
+corner_radius_bottom_right = 48
+corner_radius_bottom_left = 48
+shadow_color = Color(0.48962247, 0.48962212, 0.4896223, 0.91764706)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_60mes"]
+bg_color = Color(0.09019608, 0.09019608, 0.09019608, 0)
+
+[node name="TutorialTextBox" type="Control" unique_id=584952709]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_kx5fi")
+
+[node name="Panel" type="Panel" parent="." unique_id=45812201]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -730.0
+offset_right = 730.0
+offset_bottom = 268.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_3bnof")
+
+[node name="DialogueLabel" type="Label" parent="Panel" unique_id=2052635483]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 51.0
+offset_right = 603.0
+offset_bottom = 214.0
+theme_override_constants/line_spacing = 16
+theme_override_fonts/font = ExtResource("1_etf66")
+theme_override_font_sizes/font_size = 51
+text = "안녕하세요!"
+
+[node name="NextButton" type="Button" parent="Panel" unique_id=1638156121]
+layout_mode = 0
+offset_left = 1374.0
+offset_top = 193.0
+offset_right = 1423.0
+offset_bottom = 236.0
+theme_override_constants/outline_size = 11
+theme_override_fonts/font = ExtResource("2_kx5fi")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxFlat_60mes")
+text = ">>"

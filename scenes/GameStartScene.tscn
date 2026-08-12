@@ -1,0 +1,47 @@
+[gd_scene format=3 uid="uid://ieyt3yy3p0jk"]
+
+[ext_resource type="Script" uid="uid://cj22rc4f0wro4" path="res://scenes/GameStartScene.gd" id="1_ixu77"]
+[ext_resource type="FontFile" uid="uid://yh3fsg373u4w" path="res://VCR_OSD_MONO_1.001.ttf" id="1_u36i1"]
+
+[node name="GameStartScene" type="Control" unique_id=1356071791]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ixu77")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=472467730]
+modulate = Color(1, 1, 1, 0.19215687)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="ReadyLabel" type="Label" parent="." unique_id=352771181]
+layout_mode = 0
+offset_left = 651.0
+offset_top = 406.0
+offset_right = 1266.0
+offset_bottom = 591.0
+theme_override_fonts/font = ExtResource("1_u36i1")
+theme_override_font_sizes/font_size = 210
+text = "Ready"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="GameStartLabel" type="Label" parent="." unique_id=477260364]
+layout_mode = 0
+offset_left = 317.0
+offset_top = 400.0
+offset_right = 1684.0
+offset_bottom = 587.0
+theme_override_fonts/font = ExtResource("1_u36i1")
+theme_override_font_sizes/font_size = 212
+text = "Game Start!"
+horizontal_alignment = 1
+vertical_alignment = 1

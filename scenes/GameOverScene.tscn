@@ -1,0 +1,296 @@
+[gd_scene format=3 uid="uid://ch8b8ok6jfu54"]
+
+[ext_resource type="Script" uid="uid://vbarc6f13v6o" path="res://scenes/GameOverScene.gd" id="1_xvwt6"]
+[ext_resource type="FontFile" uid="uid://yh3fsg373u4w" path="res://VCR_OSD_MONO_1.001.ttf" id="1_y2xdt"]
+[ext_resource type="Texture2D" uid="uid://cpt24icw7xyrl" path="res://tilemap/RedHere.png" id="2_vm1uj"]
+[ext_resource type="Texture2D" uid="uid://c31wfip2h0pok" path="res://tilemap/GreenHere.png" id="3_376d8"]
+[ext_resource type="Texture2D" uid="uid://b8107ab1wv8fq" path="res://tilemap/Board1.png" id="4_7qguh"]
+[ext_resource type="FontFile" uid="uid://bsshirb842jw5" path="res://Limgul13.ttf" id="5_e85o3"]
+[ext_resource type="Texture2D" uid="uid://dvieicmb5g481" path="res://tilemap/CoinSpin.png" id="7_366c7"]
+[ext_resource type="Texture2D" uid="uid://bgssfui8i52uk" path="res://tilemap/CoinButton1.png" id="8_g1f3t"]
+[ext_resource type="Texture2D" uid="uid://bds381cj78hr3" path="res://tilemap/CoinButton2.png" id="9_mhou8"]
+[ext_resource type="Texture2D" uid="uid://d3hgb3kili21r" path="res://tilemap/CoinButton3.png" id="10_qn6d5"]
+[ext_resource type="Texture2D" uid="uid://ckn5tk65son42" path="res://tilemap/CoinButton4.png" id="11_5ktfr"]
+[ext_resource type="AudioStream" uid="uid://ck5e8x2hfdndf" path="res://button3.mp3" id="12_366c7"]
+[ext_resource type="AudioStream" uid="uid://dsyvtbcnhesfg" path="res://gameover1.mp3" id="13_g1f3t"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_140aq"]
+texture = ExtResource("4_7qguh")
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_faxm1"]
+atlas = ExtResource("7_366c7")
+region = Rect2(0, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ap1j1"]
+atlas = ExtResource("7_366c7")
+region = Rect2(96, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_uij8j"]
+atlas = ExtResource("7_366c7")
+region = Rect2(192, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wg100"]
+atlas = ExtResource("7_366c7")
+region = Rect2(288, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_eq06q"]
+atlas = ExtResource("7_366c7")
+region = Rect2(384, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_03k5j"]
+atlas = ExtResource("7_366c7")
+region = Rect2(480, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_njy6d"]
+atlas = ExtResource("7_366c7")
+region = Rect2(576, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_s3bgj"]
+atlas = ExtResource("7_366c7")
+region = Rect2(672, 0, 96, 96)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_3bnof"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_faxm1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ap1j1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_uij8j")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wg100")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_eq06q")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_03k5j")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_njy6d")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_s3bgj")
+}],
+"loop": 1,
+"name": &"CoinSpin",
+"speed": 5.0
+}]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xhdrf"]
+atlas = ExtResource("7_366c7")
+region = Rect2(0, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6hl37"]
+atlas = ExtResource("7_366c7")
+region = Rect2(96, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_u1ceu"]
+atlas = ExtResource("7_366c7")
+region = Rect2(192, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wuupm"]
+atlas = ExtResource("7_366c7")
+region = Rect2(288, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mabx5"]
+atlas = ExtResource("7_366c7")
+region = Rect2(384, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ev4sw"]
+atlas = ExtResource("7_366c7")
+region = Rect2(480, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5bqhk"]
+atlas = ExtResource("7_366c7")
+region = Rect2(576, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_oi2t7"]
+atlas = ExtResource("7_366c7")
+region = Rect2(672, 0, 96, 96)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_60mes"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xhdrf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6hl37")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_u1ceu")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wuupm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mabx5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ev4sw")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5bqhk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_oi2t7")
+}],
+"loop": 1,
+"name": &"CoinSpin",
+"speed": 5.0
+}]
+
+[node name="GameOverScene" type="Control" unique_id=1045750269]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_xvwt6")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1290340895]
+modulate = Color(1, 1, 1, 0.45490196)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="GameOverLabel" type="Label" parent="." unique_id=468061884]
+layout_mode = 0
+offset_left = 420.0
+offset_top = 193.0
+offset_right = 1546.0
+offset_bottom = 419.0
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("1_y2xdt")
+theme_override_font_sizes/font_size = 209
+text = "Game Over"
+
+[node name="MainHomeLabel" type="Label" parent="." unique_id=616391209]
+layout_mode = 0
+offset_left = 799.0
+offset_top = 512.0
+offset_right = 1181.0
+offset_bottom = 588.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("1_y2xdt")
+theme_override_font_sizes/font_size = 70
+text = "Main Home"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PlayagainLabel" type="Label" parent="." unique_id=2143812114]
+layout_mode = 0
+offset_left = 805.0
+offset_top = 701.0
+offset_right = 1227.0
+offset_bottom = 779.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("1_y2xdt")
+theme_override_font_sizes/font_size = 70
+text = "Play Again"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MainHomeButton1" type="TextureButton" parent="." unique_id=1998503455]
+layout_mode = 0
+offset_left = 653.0
+offset_top = 481.0
+offset_right = 1228.0
+offset_bottom = 621.0
+
+[node name="PlayagainButton" type="TextureButton" parent="." unique_id=1503050085]
+layout_mode = 0
+offset_left = 647.0
+offset_top = 695.0
+offset_right = 1258.0
+offset_bottom = 793.0
+
+[node name="Here1" type="Sprite2D" parent="." unique_id=1265572860]
+position = Vector2(712.00006, 557.99994)
+rotation = 1.5714412
+texture = ExtResource("2_vm1uj")
+
+[node name="Here2" type="Sprite2D" parent="." unique_id=1602807848]
+position = Vector2(712.00006, 743.99994)
+rotation = 3.15026
+texture = ExtResource("3_376d8")
+
+[node name="RetryPopup" type="Control" parent="." unique_id=868126910]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Panel" type="Panel" parent="RetryPopup" unique_id=1055109375]
+texture_filter = 1
+layout_mode = 0
+offset_left = 276.0
+offset_top = 256.0
+offset_right = 1675.0
+offset_bottom = 1098.0
+theme_override_styles/panel = SubResource("StyleBoxTexture_140aq")
+
+[node name="ExplainLabel" type="Label" parent="RetryPopup/Panel" unique_id=1794979336]
+layout_mode = 0
+offset_left = 375.0
+offset_top = 247.0
+offset_right = 1035.0
+offset_bottom = 317.0
+theme_override_colors/font_color = Color(0.31246608, 0.31246608, 0.31246606, 1)
+theme_override_fonts/font = ExtResource("5_e85o3")
+theme_override_font_sizes/font_size = 65
+text = "코인 5개가 필요합니다"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CoinSpin1" type="AnimatedSprite2D" parent="RetryPopup/Panel" unique_id=1522499013]
+texture_filter = 1
+position = Vector2(263, 279)
+scale = Vector2(1.125, 1.0729166)
+sprite_frames = SubResource("SpriteFrames_3bnof")
+animation = &"CoinSpin"
+frame_progress = 0.16694005
+
+[node name="CoinSpin2" type="AnimatedSprite2D" parent="RetryPopup/Panel" unique_id=1810368124]
+texture_filter = 1
+position = Vector2(1123, 273.5)
+scale = Vector2(1.25, 1.1354166)
+sprite_frames = SubResource("SpriteFrames_60mes")
+animation = &"CoinSpin"
+frame_progress = 0.5682671
+
+[node name="UseButton" type="TextureButton" parent="RetryPopup/Panel" unique_id=1355967425]
+layout_mode = 0
+offset_left = 201.0
+offset_top = 432.0
+offset_right = 651.0
+offset_bottom = 587.0
+texture_normal = ExtResource("8_g1f3t")
+texture_pressed = ExtResource("9_mhou8")
+
+[node name="CancelButton" type="TextureButton" parent="RetryPopup/Panel" unique_id=1058839767]
+texture_filter = 1
+layout_mode = 0
+offset_left = 722.0
+offset_top = 429.0
+offset_right = 1172.0
+offset_bottom = 609.0
+texture_normal = ExtResource("10_qn6d5")
+texture_pressed = ExtResource("11_5ktfr")
+
+[node name="ButtonClickAudio" type="AudioStreamPlayer" parent="." unique_id=660314172]
+stream = ExtResource("12_366c7")
+
+[node name="GameOverAudio" type="AudioStreamPlayer" parent="." unique_id=786686939]
+stream = ExtResource("13_g1f3t")

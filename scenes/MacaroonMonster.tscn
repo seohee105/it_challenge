@@ -1,0 +1,131 @@
+[gd_scene format=3 uid="uid://c7b1l0jttok1n"]
+
+[ext_resource type="Script" uid="uid://cxdy36euis06r" path="res://scenes/MacaroonMonster.gd" id="1_efd5x"]
+[ext_resource type="Texture2D" uid="uid://bajvt4e2vfap7" path="res://tilemap/Macaroon_Dead.png" id="2_mcdhw"]
+[ext_resource type="Texture2D" uid="uid://behg7csqkt8jf" path="res://tilemap/Macaroon_Hurt.png" id="3_oygf7"]
+[ext_resource type="Texture2D" uid="uid://e2rx8weuno18" path="res://tilemap/Macarooon_Jump.png" id="4_suu4b"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4imup"]
+atlas = ExtResource("2_mcdhw")
+region = Rect2(0, 0, 230, 228)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_57isx"]
+atlas = ExtResource("2_mcdhw")
+region = Rect2(690, 0, 230, 228)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ymstv"]
+atlas = ExtResource("3_oygf7")
+region = Rect2(288, 0, 288, 288)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xcoqr"]
+atlas = ExtResource("3_oygf7")
+region = Rect2(576, 0, 288, 288)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_b4kqk"]
+atlas = ExtResource("4_suu4b")
+region = Rect2(0, 0, 288, 288)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5ib0o"]
+atlas = ExtResource("4_suu4b")
+region = Rect2(288, 0, 288, 288)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f6csp"]
+atlas = ExtResource("4_suu4b")
+region = Rect2(576, 0, 288, 288)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_l5tyh"]
+atlas = ExtResource("4_suu4b")
+region = Rect2(864, 0, 288, 288)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_epqkc"]
+atlas = ExtResource("4_suu4b")
+region = Rect2(1152, 0, 288, 288)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_45aq1"]
+atlas = ExtResource("4_suu4b")
+region = Rect2(1440, 0, 288, 288)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_3bnof"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4imup")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_57isx")
+}],
+"loop": 0,
+"name": &"Dead",
+"speed": 2.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ymstv")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xcoqr")
+}],
+"loop": 0,
+"name": &"Hurt",
+"speed": 3.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_b4kqk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5ib0o")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f6csp")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_l5tyh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_epqkc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_45aq1")
+}],
+"loop": 1,
+"name": &"Jump",
+"speed": 8.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_lgppu"]
+radius = 63.126858
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_lr6j5"]
+radius = 105.00476
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_tcade"]
+size = Vector2(152, 45)
+
+[node name="MacaroonMonster" type="CharacterBody2D" unique_id=604601286]
+collision_layer = 4
+collision_mask = 3
+script = ExtResource("1_efd5x")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1739912113]
+position = Vector2(12410, 833)
+scale = Vector2(0.7291667, 0.6805556)
+sprite_frames = SubResource("SpriteFrames_3bnof")
+animation = &"Jump"
+autoplay = "Jump"
+
+[node name="CharacterCollision" type="CollisionShape2D" parent="." unique_id=2141885568]
+position = Vector2(12416, 845)
+shape = SubResource("CircleShape2D_lgppu")
+
+[node name="DamageArea" type="Area2D" parent="." unique_id=82442712]
+
+[node name="DamageCollision" type="CollisionShape2D" parent="DamageArea" unique_id=1527333366]
+position = Vector2(12415, 914)
+shape = SubResource("CircleShape2D_lr6j5")
+
+[node name="StompArea" type="Area2D" parent="." unique_id=26075813]
+
+[node name="StompCollision" type="CollisionShape2D" parent="StompArea" unique_id=540395922]
+position = Vector2(12415, 788.5)
+shape = SubResource("RectangleShape2D_tcade")

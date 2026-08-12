@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://ou1ef1bsh2g6"]
+
+[ext_resource type="Script" uid="uid://b83uurmq1d83t" path="res://fast-food-city/Scenes/AttackItem.gd" id="1_hyv33"]
+[ext_resource type="Texture2D" uid="uid://kv2c388bfdju" path="res://fast-food-city/Sprites/UI/items.png" id="2_hyv33"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_2dim1"]
+radius = 53.15073
+
+[node name="AttackItem" type="Area2D" unique_id=1111032665]
+script = ExtResource("1_hyv33")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1242732719]
+position = Vector2(7.7892685, 13.640621)
+scale = Vector2(0.30549315, 0.2997582)
+texture = ExtResource("2_hyv33")
+region_enabled = true
+region_rect = Rect2(603.7301, 298.44873, 368.97656, 336.12244)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1833441968]
+texture_filter = 1
+position = Vector2(-4, 8)
+shape = SubResource("CircleShape2D_2dim1")
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]

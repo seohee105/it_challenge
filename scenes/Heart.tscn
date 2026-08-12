@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://6vpekcs55u2d"]
+
+[ext_resource type="Script" uid="uid://b3p1mv1mrt4wt" path="res://scenes/Heart.gd" id="1_1cpwx"]
+[ext_resource type="Texture2D" uid="uid://bpkdpo3l1a5lc" path="res://tilemap/items.png" id="2_mvrql"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_3bnof"]
+radius = 47.0
+
+[node name="Heart" type="Area2D" unique_id=1202878101]
+script = ExtResource("1_1cpwx")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1240003896]
+texture_filter = 1
+position = Vector2(8155, 483)
+scale = Vector2(0.3766665, 0.37768838)
+texture = ExtResource("2_mvrql")
+region_enabled = true
+region_rect = Rect2(127.60083, 328.45917, 300.76202, 279.8758)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=76904759]
+position = Vector2(8153, 480)
+shape = SubResource("CircleShape2D_3bnof")

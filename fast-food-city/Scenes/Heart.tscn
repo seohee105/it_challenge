@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://ck8q41vk221yy"]
+
+[ext_resource type="Script" uid="uid://uqv4ntctcoac" path="res://fast-food-city/Heart.gd" id="1_d0aq2"]
+[ext_resource type="Texture2D" uid="uid://kv2c388bfdju" path="res://fast-food-city/Sprites/UI/items.png" id="2_d0aq2"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_51err"]
+radius = 197.0
+
+[node name="HeartItem" type="Area2D" unique_id=1487169456]
+script = ExtResource("1_d0aq2")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1598086740]
+texture_filter = 1
+position = Vector2(74.79998, 72.37499)
+scale = Vector2(1.0895833, 1.1320895)
+texture = ExtResource("2_d0aq2")
+region_enabled = true
+region_rect = Rect2(131.13684, 346.46625, 326.01355, 267.88702)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1274524005]
+position = Vector2(51, 56)
+shape = SubResource("CircleShape2D_51err")
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]

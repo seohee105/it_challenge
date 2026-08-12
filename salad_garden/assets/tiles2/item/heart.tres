@@ -1,0 +1,18 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://bkh0gjjvkr8fd"]
+
+[ext_resource type="Texture2D" uid="uid://ca8ttd6kadqmc" path="res://assets/tiles2/item/Copilot_20260805_032402.png" id="1_gbpsd"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tgqlg"]
+atlas = ExtResource("1_gbpsd")
+region = Rect2(208, 394, 256, 256)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tgqlg")
+}],
+"loop": 1,
+"name": &"heart",
+"speed": 5.0
+}]

@@ -1,0 +1,116 @@
+[gd_scene format=3 uid="uid://c3abqo4hn4kr2"]
+
+[ext_resource type="Script" uid="uid://dvbd71fk07dia" path="res://scenes/DonutMonster.gd" id="1_b62ad"]
+[ext_resource type="Texture2D" uid="uid://bts5h6w7b3cke" path="res://tilemap/DonutMonster1.png" id="2_c3mhd"]
+[ext_resource type="Texture2D" uid="uid://cvh1n3a0x4ag4" path="res://tilemap/DonutMonster2.png" id="3_eaoqg"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3m6vj"]
+atlas = ExtResource("2_c3mhd")
+region = Rect2(0, 0, 224, 224)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_oe6sn"]
+atlas = ExtResource("2_c3mhd")
+region = Rect2(224, 0, 224, 224)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_oktl3"]
+atlas = ExtResource("2_c3mhd")
+region = Rect2(448, 0, 224, 224)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4imup"]
+atlas = ExtResource("2_c3mhd")
+region = Rect2(672, 0, 224, 224)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3excg"]
+atlas = ExtResource("2_c3mhd")
+region = Rect2(896, 0, 224, 224)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jdqp0"]
+atlas = ExtResource("2_c3mhd")
+region = Rect2(1120, 0, 224, 224)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_57isx"]
+atlas = ExtResource("3_eaoqg")
+region = Rect2(0, 0, 224, 224)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1v350"]
+atlas = ExtResource("3_eaoqg")
+region = Rect2(224, 0, 224, 224)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ymstv"]
+atlas = ExtResource("3_eaoqg")
+region = Rect2(448, 0, 224, 224)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xcoqr"]
+atlas = ExtResource("3_eaoqg")
+region = Rect2(672, 0, 224, 224)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_140aq"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3m6vj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_oe6sn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_oktl3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4imup")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3excg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jdqp0")
+}],
+"loop": 1,
+"name": &"Dumbling",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_57isx")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1v350")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ymstv")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xcoqr")
+}],
+"loop": 0,
+"name": &"Hurt",
+"speed": 5.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_n8rdh"]
+radius = 71.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_3m6vj"]
+radius = 102.88343
+
+[node name="DonutMonster" type="CharacterBody2D" unique_id=1133028615]
+collision_layer = 4
+collision_mask = 3
+script = ExtResource("1_b62ad")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1031239515]
+texture_filter = 1
+position = Vector2(17104, 829)
+scale = Vector2(1.1517811, 0.94642854)
+sprite_frames = SubResource("SpriteFrames_140aq")
+animation = &"Dumbling"
+
+[node name="CharacterCollision" type="CollisionShape2D" parent="." unique_id=1527039438]
+position = Vector2(17098, 827)
+shape = SubResource("CircleShape2D_n8rdh")
+
+[node name="DamageArea" type="Area2D" parent="." unique_id=1884403506]
+
+[node name="DamageCollision" type="CollisionShape2D" parent="DamageArea" unique_id=1355807144]
+position = Vector2(17098, 822)
+shape = SubResource("CircleShape2D_3m6vj")

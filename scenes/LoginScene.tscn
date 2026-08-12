@@ -1,0 +1,275 @@
+[gd_scene format=3 uid="uid://cvhbg68c5cavr"]
+
+[ext_resource type="Script" uid="uid://cm12cmf1pnt8x" path="res://scenes/LoginScene.gd" id="1_8t32u"]
+[ext_resource type="FontFile" uid="uid://bsshirb842jw5" path="res://Limgul13.ttf" id="1_jved0"]
+[ext_resource type="Texture2D" uid="uid://c5w7ceiliy314" path="res://tilemap/Panel.png" id="2_j1o45"]
+[ext_resource type="Texture2D" uid="uid://cwa5hbxn5gl86" path="res://tilemap/TittleBa.png" id="3_yq7y8"]
+[ext_resource type="Texture2D" uid="uid://8fob2271vrbt" path="res://tilemap/BoyButton1.png" id="5_ebsv3"]
+[ext_resource type="Texture2D" uid="uid://bxxavm6k0w5sj" path="res://tilemap/BoyButton2.png" id="6_my2he"]
+[ext_resource type="Texture2D" uid="uid://kh1m7pc2ow8j" path="res://tilemap/GirlButton1.png" id="7_6qopg"]
+[ext_resource type="Texture2D" uid="uid://cw3h354ygbrkx" path="res://tilemap/GirlButton2.png" id="8_3l8q6"]
+[ext_resource type="Texture2D" uid="uid://dgarxhialyb2t" path="res://tilemap/SaveButton1.png" id="9_lh3pw"]
+[ext_resource type="Texture2D" uid="uid://drn6fuclypsjh" path="res://tilemap/SaveButton2.png" id="10_xi26d"]
+
+[sub_resource type="FontVariation" id="FontVariation_xi26d"]
+base_font = ExtResource("1_jved0")
+spacing_glyph = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3bnof"]
+bg_color = Color(0.7294118, 0.56078434, 0.3529412, 0.2627451)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_my2he"]
+bg_color = Color(0.9254902, 0.7882353, 0.6627451, 0.5686275)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+
+[sub_resource type="FontVariation" id="FontVariation_woec6"]
+base_font = ExtResource("1_jved0")
+spacing_glyph = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pu6m6"]
+bg_color = Color(0.7294118, 0.56078434, 0.3529412, 0.2627451)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6qopg"]
+bg_color = Color(0.9254902, 0.7882353, 0.6627451, 0.5686275)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+
+[sub_resource type="FontVariation" id="FontVariation_57u7r"]
+base_font = ExtResource("1_jved0")
+spacing_glyph = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yq7y8"]
+bg_color = Color(0.7294118, 0.56078434, 0.3529412, 0.2627451)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+shadow_color = Color(0.86419123, 0.5624795, 0.004804219, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3l8q6"]
+bg_color = Color(0.9254902, 0.7882353, 0.6627451, 0.5686275)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+
+[node name="LoginScene" type="Control" unique_id=1798901474]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_8t32u")
+
+[node name="TextureRect" type="TextureRect" parent="." unique_id=1653458728]
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -496.5
+offset_top = -496.5
+offset_right = 496.5
+offset_bottom = 496.5
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_j1o45")
+
+[node name="Tittle" type="Sprite2D" parent="TextureRect" unique_id=1353193196]
+position = Vector2(488.49997, 101.5)
+scale = Vector2(0.41307902, 0.4373687)
+texture = ExtResource("3_yq7y8")
+
+[node name="GenderLabel" type="Label" parent="TextureRect" unique_id=1780471157]
+layout_mode = 0
+offset_left = 194.5
+offset_top = 262.5
+offset_right = 275.5
+offset_bottom = 306.5
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("1_jved0")
+theme_override_font_sizes/font_size = 40
+text = "성별"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MaleButton" type="TextureButton" parent="TextureRect" unique_id=814634636]
+layout_mode = 0
+offset_left = 357.5
+offset_top = 241.5
+offset_right = 549.5
+offset_bottom = 337.5
+toggle_mode = true
+texture_normal = ExtResource("5_ebsv3")
+texture_pressed = ExtResource("6_my2he")
+
+[node name="FemaleButton" type="TextureButton" parent="TextureRect" unique_id=2123427556]
+layout_mode = 0
+offset_left = 557.5
+offset_top = 241.5
+offset_right = 749.5
+offset_bottom = 337.5
+toggle_mode = true
+texture_normal = ExtResource("7_6qopg")
+texture_pressed = ExtResource("8_3l8q6")
+
+[node name="HeightLabel" type="Label" parent="TextureRect" unique_id=1437048767]
+layout_mode = 0
+offset_left = 183.5
+offset_top = 392.5
+offset_right = 299.5
+offset_bottom = 469.5
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("1_jved0")
+theme_override_font_sizes/font_size = 40
+text = "키"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HeightInput" type="LineEdit" parent="TextureRect" unique_id=482695446]
+layout_mode = 0
+offset_left = 350.5
+offset_top = 381.5
+offset_right = 605.5
+offset_bottom = 470.5
+theme_override_colors/font_color = Color(0.13333334, 0.13333334, 0.13333334, 1)
+theme_override_colors/font_placeholder_color = Color(0.2784314, 0.2784314, 0.2784314, 0.75686276)
+theme_override_colors/caret_color = Color(0.135012, 0.135012, 0.13501245, 1)
+theme_override_fonts/font = SubResource("FontVariation_xi26d")
+theme_override_font_sizes/font_size = 23
+theme_override_styles/normal = SubResource("StyleBoxFlat_3bnof")
+theme_override_styles/focus = SubResource("StyleBoxFlat_my2he")
+placeholder_text = "   키를 입력하세요"
+
+[node name="HeightUnitLabel" type="Label" parent="TextureRect" unique_id=870708583]
+layout_mode = 0
+offset_left = 627.5
+offset_top = 407.5
+offset_right = 703.5
+offset_bottom = 451.5
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("1_jved0")
+theme_override_font_sizes/font_size = 40
+text = "cm"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="WeightLabel" type="Label" parent="TextureRect" unique_id=871803373]
+layout_mode = 0
+offset_left = 190.5
+offset_top = 562.5
+offset_right = 310.5
+offset_bottom = 606.5
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("1_jved0")
+theme_override_font_sizes/font_size = 40
+text = "몸무게"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="WeightInput" type="LineEdit" parent="TextureRect" unique_id=1907588843]
+layout_mode = 0
+offset_left = 351.5
+offset_top = 534.5
+offset_right = 638.5
+offset_bottom = 621.5
+theme_override_colors/font_color = Color(0.1331962, 0.13319656, 0.13319623, 1)
+theme_override_colors/font_placeholder_color = Color(0.2784314, 0.2784314, 0.2784314, 0.75686276)
+theme_override_colors/caret_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = SubResource("FontVariation_woec6")
+theme_override_font_sizes/font_size = 23
+theme_override_styles/normal = SubResource("StyleBoxFlat_pu6m6")
+theme_override_styles/focus = SubResource("StyleBoxFlat_6qopg")
+placeholder_text = "   몸무게를 입력하세요"
+
+[node name="WeightUnitLabel" type="Label" parent="TextureRect" unique_id=1390109511]
+layout_mode = 0
+offset_left = 666.5
+offset_top = 554.5
+offset_right = 709.5
+offset_bottom = 598.5
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("1_jved0")
+theme_override_font_sizes/font_size = 40
+text = "kg"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AgeLabel" type="Label" parent="TextureRect" unique_id=724087423]
+layout_mode = 0
+offset_left = 211.5
+offset_top = 698.5
+offset_right = 291.5
+offset_bottom = 742.5
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("1_jved0")
+theme_override_font_sizes/font_size = 40
+text = "나이"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AgeInput" type="LineEdit" parent="TextureRect" unique_id=2129395418]
+layout_mode = 0
+offset_left = 349.5
+offset_top = 680.5
+offset_right = 607.5
+offset_bottom = 765.5
+theme_override_colors/font_color = Color(0.13333334, 0.13333334, 0.13333334, 1)
+theme_override_colors/font_placeholder_color = Color(0.2784314, 0.2784314, 0.2784314, 0.75686276)
+theme_override_colors/caret_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = SubResource("FontVariation_57u7r")
+theme_override_font_sizes/font_size = 23
+theme_override_styles/normal = SubResource("StyleBoxFlat_yq7y8")
+theme_override_styles/focus = SubResource("StyleBoxFlat_3l8q6")
+placeholder_text = "   나이를 입력하세요"
+
+[node name="AgeUnitLabel" type="Label" parent="TextureRect" unique_id=1677486019]
+layout_mode = 0
+offset_left = 654.5
+offset_top = 703.5
+offset_right = 694.5
+offset_bottom = 747.5
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("1_jved0")
+theme_override_font_sizes/font_size = 40
+text = "세"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="WarningLabel" type="Label" parent="TextureRect" unique_id=1476870307]
+layout_mode = 0
+offset_left = 264.5
+offset_top = 180.5
+offset_right = 703.5
+offset_bottom = 217.5
+theme_override_colors/font_color = Color(0.65761113, 0.11320961, 0.0010981512, 1)
+theme_override_fonts/font = ExtResource("1_jved0")
+theme_override_font_sizes/font_size = 23
+text = "❗모든 정보를 입력해주세요 ❗"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SaveButton" type="TextureButton" parent="TextureRect" unique_id=1903161734]
+layout_mode = 0
+offset_left = 419.5
+offset_top = 807.5
+offset_right = 602.5
+offset_bottom = 888.5
+texture_normal = ExtResource("9_lh3pw")
+texture_pressed = ExtResource("10_xi26d")

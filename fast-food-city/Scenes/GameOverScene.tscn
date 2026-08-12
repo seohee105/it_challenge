@@ -1,0 +1,253 @@
+[gd_scene format=3 uid="uid://dcdtyri7wyj4r"]
+
+[ext_resource type="Script" uid="uid://cbj6j1mv5so2f" path="res://fast-food-city/Scenes/GameOver.gd" id="1_543kh"]
+[ext_resource type="Texture2D" uid="uid://bbgvo0tx6rcp8" path="res://fast-food-city/Sprites/gameover화면.png" id="1_re8an"]
+[ext_resource type="AudioStream" uid="uid://bn58upfr0cpxo" path="res://fast-food-city/gameover1.mp3" id="3_a74uc"]
+[ext_resource type="Texture2D" uid="uid://cu622quxfouco" path="res://fast-food-city/Sprites/UI/Board1.png" id="3_jvt4f"]
+[ext_resource type="FontFile" uid="uid://cpd6eusiqx3tc" path="res://fast-food-city/Limgul13.ttf" id="4_m3uyw"]
+[ext_resource type="Texture2D" uid="uid://boivuyosbrcc" path="res://fast-food-city/Sprites/UI/CoinSpin.png" id="5_7n5gh"]
+[ext_resource type="Texture2D" uid="uid://c3cx0ixrjabkd" path="res://fast-food-city/Sprites/UI/CoinButton1.png" id="6_odd1w"]
+[ext_resource type="Texture2D" uid="uid://0uihflto732d" path="res://fast-food-city/Sprites/UI/CoinButton3.png" id="7_cofyd"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_3bnof"]
+texture = ExtResource("3_jvt4f")
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_eftn2"]
+atlas = ExtResource("5_7n5gh")
+region = Rect2(0, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hefjp"]
+atlas = ExtResource("5_7n5gh")
+region = Rect2(96, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_i7dml"]
+atlas = ExtResource("5_7n5gh")
+region = Rect2(192, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4sani"]
+atlas = ExtResource("5_7n5gh")
+region = Rect2(288, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_o7j0u"]
+atlas = ExtResource("5_7n5gh")
+region = Rect2(384, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4pbum"]
+atlas = ExtResource("5_7n5gh")
+region = Rect2(480, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sdco7"]
+atlas = ExtResource("5_7n5gh")
+region = Rect2(576, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hajwp"]
+atlas = ExtResource("5_7n5gh")
+region = Rect2(672, 0, 96, 96)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_3bnof"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_eftn2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hefjp")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_i7dml")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4sani")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_o7j0u")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4pbum")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_sdco7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hajwp")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1af5r"]
+atlas = ExtResource("5_7n5gh")
+region = Rect2(0, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pexbc"]
+atlas = ExtResource("5_7n5gh")
+region = Rect2(96, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nbych"]
+atlas = ExtResource("5_7n5gh")
+region = Rect2(192, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yj5s5"]
+atlas = ExtResource("5_7n5gh")
+region = Rect2(288, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_h852d"]
+atlas = ExtResource("5_7n5gh")
+region = Rect2(384, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_it0q4"]
+atlas = ExtResource("5_7n5gh")
+region = Rect2(480, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nncbw"]
+atlas = ExtResource("5_7n5gh")
+region = Rect2(576, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rg5yt"]
+atlas = ExtResource("5_7n5gh")
+region = Rect2(672, 0, 96, 96)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_60mes"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1af5r")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pexbc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nbych")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yj5s5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_h852d")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_it0q4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nncbw")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rg5yt")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 5.0
+}]
+
+[node name="GameOver" type="Control" unique_id=1578973923]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_543kh")
+
+[node name="Background" type="TextureRect" parent="." unique_id=1491913469]
+layout_mode = 0
+offset_left = -20.0
+offset_top = -10.0
+offset_right = 4000.0
+offset_bottom = 2198.0
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("1_re8an")
+
+[node name="Label" type="Label" parent="." unique_id=1354063139]
+layout_mode = 0
+offset_left = 424.0
+offset_top = 214.0
+offset_right = 768.0
+offset_bottom = 297.0
+theme_override_colors/font_color = Color(0, 0.03137255, 0, 1)
+theme_override_font_sizes/font_size = 60
+text = "GAME OVER"
+
+[node name="RetryButton" type="Button" parent="." unique_id=121817290]
+layout_mode = 0
+offset_left = 1042.0
+offset_top = 816.0
+offset_right = 1622.0
+offset_bottom = 915.0
+flat = true
+
+[node name="HomeButton" type="Button" parent="." unique_id=1597316399]
+layout_mode = 0
+offset_left = 358.0
+offset_top = 818.0
+offset_right = 959.0
+offset_bottom = 918.0
+flat = true
+
+[node name="PopUp" type="Control" parent="." unique_id=2013316507]
+visible = false
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Panel" type="Panel" parent="PopUp" unique_id=1641058324]
+layout_mode = 0
+offset_left = 504.0
+offset_top = 327.0
+offset_right = 1394.0
+offset_bottom = 952.0
+theme_override_styles/panel = SubResource("StyleBoxTexture_3bnof")
+
+[node name="Label" type="Label" parent="PopUp/Panel" unique_id=626030839]
+layout_mode = 0
+offset_left = 110.0
+offset_top = 203.0
+offset_right = 766.0
+offset_bottom = 294.0
+theme_override_colors/font_color = Color(0.08468992, 0.08468992, 0.08468992, 1)
+theme_override_fonts/font = ExtResource("4_m3uyw")
+theme_override_font_sizes/font_size = 40
+text = "코인 5개가 필요합니다"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="PopUp/Panel" unique_id=1293177002]
+texture_filter = 1
+position = Vector2(165, 240)
+sprite_frames = SubResource("SpriteFrames_3bnof")
+autoplay = "default"
+
+[node name="AnimatedSprite2D2" type="AnimatedSprite2D" parent="PopUp/Panel" unique_id=268929774]
+texture_filter = 1
+position = Vector2(724, 237)
+sprite_frames = SubResource("SpriteFrames_60mes")
+autoplay = "default"
+
+[node name="Sprite2D" type="Sprite2D" parent="PopUp/Panel" unique_id=1223487338]
+position = Vector2(264, 418)
+scale = Vector2(0.6333333, 0.64444447)
+texture = ExtResource("6_odd1w")
+
+[node name="Sprite2D2" type="Sprite2D" parent="PopUp/Panel" unique_id=255382975]
+position = Vector2(617, 418)
+scale = Vector2(0.6333333, 0.64444447)
+texture = ExtResource("7_cofyd")
+
+[node name="UseButton" type="TextureButton" parent="PopUp/Panel" unique_id=1383499565]
+layout_mode = 0
+offset_left = 138.0
+offset_top = 365.0
+offset_right = 382.0
+offset_bottom = 470.0
+
+[node name="CancelButton" type="TextureButton" parent="PopUp/Panel" unique_id=1714581187]
+layout_mode = 0
+offset_left = 496.0
+offset_top = 371.0
+offset_right = 740.0
+offset_bottom = 465.0
+
+[node name="GameOverAudio" type="AudioStreamPlayer" parent="." unique_id=848206749]
+stream = ExtResource("3_a74uc")
+autoplay = true
+
+[connection signal="pressed" from="RetryButton" to="." method="_on_retry_button_pressed"]
+[connection signal="pressed" from="HomeButton" to="." method="_on_home_button_pressed"]

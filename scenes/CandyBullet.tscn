@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://xd2lccveoxvd"]
+
+[ext_resource type="Script" uid="uid://cq81ad5ylywva" path="res://CandyBullet.gd" id="1_bh4bo"]
+[ext_resource type="Texture2D" uid="uid://d274it84w8d67" path="res://tilemap/CandyMonster2.png" id="2_15cdq"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_60mes"]
+radius = 24.020824
+
+[node name="CandyBullet" type="Area2D" unique_id=188420454]
+script = ExtResource("1_bh4bo")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=479408599]
+texture_filter = 1
+position = Vector2(792.5, 438.96494)
+scale = Vector2(0.95370394, 1.070176)
+texture = ExtResource("2_15cdq")
+region_enabled = true
+region_rect = Rect2(516.50476, 108.15006, 108.645325, 57.200005)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1424125847]
+position = Vector2(794, 440)
+shape = SubResource("CircleShape2D_60mes")

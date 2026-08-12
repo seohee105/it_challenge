@@ -1,0 +1,25 @@
+[gd_scene format=3 uid="uid://cule1p4rix3sc"]
+
+[ext_resource type="Script" uid="uid://b4f4idfj8yig8" path="res://fast-food-city/ShieldItem.gd" id="1_8ga25"]
+[ext_resource type="Texture2D" uid="uid://kv2c388bfdju" path="res://fast-food-city/Sprites/UI/items.png" id="2_8ga25"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_51err"]
+radius = 104.019226
+
+[node name="ShieldItem" type="Area2D" unique_id=786932083]
+script = ExtResource("1_8ga25")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1783694727]
+texture_filter = 1
+position = Vector2(29.933329, 20.627682)
+scale = Vector2(0.3802607, 0.35078916)
+texture = ExtResource("2_8ga25")
+region_enabled = true
+region_rect = Rect2(1116.7592, 323.72107, 358.86743, 310.8501)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2024829150]
+position = Vector2(28, 12)
+scale = Vector2(0.5, 0.5)
+shape = SubResource("CircleShape2D_51err")
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]

@@ -1,0 +1,232 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/WorkoutRecordPage.gd" id="1_script"]
+[ext_resource type="Theme" path="res://theme/game_theme.tres" id="2_theme"]
+[ext_resource type="Texture2D" path="res://assets/ui/button_red.png" id="3_btn_red"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_red"]
+texture = ExtResource("3_btn_red")
+texture_margin_left = 14.0
+texture_margin_top = 10.0
+texture_margin_right = 14.0
+texture_margin_bottom = 10.0
+content_margin_left = 10.0
+content_margin_top = 6.0
+content_margin_right = 10.0
+content_margin_bottom = 6.0
+
+[node name="WorkoutRecordPage" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_theme")
+script = ExtResource("1_script")
+
+[node name="LeftCardRoot" type="Control" parent="."]
+layout_mode = 0
+offset_left = 45.0
+offset_top = 40.0
+offset_right = 700.0
+offset_bottom = 920.0
+
+[node name="ContentMargin" type="MarginContainer" parent="LeftCardRoot"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 25
+theme_override_constants/margin_top = 25
+theme_override_constants/margin_right = 25
+theme_override_constants/margin_bottom = 25
+
+[node name="LeftPages" type="Control" parent="LeftCardRoot/ContentMargin"]
+layout_mode = 2
+
+[node name="CategoryView" type="VBoxContainer" parent="LeftCardRoot/ContentMargin/LeftPages"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 14
+
+[node name="LeftTitleLabel" type="Label" parent="LeftCardRoot/ContentMargin/LeftPages/CategoryView"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "🏋️ 운동 종류 추가"
+horizontal_alignment = 1
+
+[node name="MsgLabel" type="Label" parent="LeftCardRoot/ContentMargin/LeftPages/CategoryView"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1
+text = ""
+visible = false
+
+[node name="ScrollContainer" type="ScrollContainer" parent="LeftCardRoot/ContentMargin/LeftPages/CategoryView"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="CategoryContainer" type="VBoxContainer" parent="LeftCardRoot/ContentMargin/LeftPages/CategoryView/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="TimerView" type="VBoxContainer" parent="LeftCardRoot/ContentMargin/LeftPages"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 22
+alignment = 1
+visible = false
+
+[node name="TimerIcon" type="TextureRect" parent="LeftCardRoot/ContentMargin/LeftPages/TimerView"]
+custom_minimum_size = Vector2(96, 96)
+layout_mode = 2
+size_flags_horizontal = 4
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TimerNameLabel" type="Label" parent="LeftCardRoot/ContentMargin/LeftPages/TimerView"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "🏃 운동 이름"
+horizontal_alignment = 1
+
+[node name="TimerTimeLabel" type="Label" parent="LeftCardRoot/ContentMargin/LeftPages/TimerView"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 64
+text = "0:00:00"
+horizontal_alignment = 1
+
+[node name="TimerControlButtons" type="HBoxContainer" parent="LeftCardRoot/ContentMargin/LeftPages/TimerView"]
+layout_mode = 2
+theme_override_constants/separation = 18
+alignment = 1
+
+[node name="TimerPlayButton" type="Button" parent="LeftCardRoot/ContentMargin/LeftPages/TimerView/TimerControlButtons"]
+custom_minimum_size = Vector2(140, 76)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_red")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_red")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_red")
+text = "▶"
+
+[node name="TimerStopButton" type="Button" parent="LeftCardRoot/ContentMargin/LeftPages/TimerView/TimerControlButtons"]
+custom_minimum_size = Vector2(140, 76)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "⏹ 종료"
+
+[node name="TimerBackButton" type="Button" parent="LeftCardRoot/ContentMargin/LeftPages/TimerView"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+text = "↩ 목록으로"
+
+[node name="RightCardRoot" type="Control" parent="."]
+layout_mode = 0
+offset_left = 790.0
+offset_top = 40.0
+offset_right = 1445.0
+offset_bottom = 920.0
+
+[node name="ContentMargin" type="MarginContainer" parent="RightCardRoot"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 25
+theme_override_constants/margin_top = 25
+theme_override_constants/margin_right = 25
+theme_override_constants/margin_bottom = 25
+
+[node name="VBox" type="VBoxContainer" parent="RightCardRoot/ContentMargin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="RightTitleLabel" type="Label" parent="RightCardRoot/ContentMargin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "📒 운동 기록"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="RightCardRoot/ContentMargin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="ItemContainer" type="VBoxContainer" parent="RightCardRoot/ContentMargin/VBox/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="TodayCalLabel" type="Label" parent="RightCardRoot/ContentMargin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "🔥 오늘의 총 소모 칼로리: 0.0 kcal"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="BottomBar" type="HBoxContainer" parent="RightCardRoot/ContentMargin/VBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="EditDeleteButton" type="Button" parent="RightCardRoot/ContentMargin/VBox/BottomBar"]
+layout_mode = 2
+custom_minimum_size = Vector2(180, 52)
+theme_override_font_sizes/font_size = 18
+text = "✏️ 수정/삭제"
+
+[node name="SideActions" type="Panel" parent="."]
+layout_mode = 3
+anchor_left = 0.5
+anchor_right = 1.0
+anchor_top = 0.0
+anchor_bottom = 1.0
+visible = false
+
+[node name="VBox" type="VBoxContainer" parent="SideActions"]
+layout_mode = 1
+anchors_preset = 15
+offset_left = 12.0
+offset_top = 12.0
+offset_right = -12.0
+offset_bottom = -12.0
+
+[node name="DeleteButton" type="Button" parent="SideActions/VBox"]
+layout_mode = 2
+text = "🗑 삭제"
+
+[node name="EditButton" type="Button" parent="SideActions/VBox"]
+layout_mode = 2
+text = "✏️ 수정"
+
+[node name="EditLine" type="LineEdit" parent="SideActions/VBox"]
+layout_mode = 2
+placeholder_text = "새 운동 이름 입력"
+visible = false
+
+[node name="SaveEditButton" type="Button" parent="SideActions/VBox"]
+layout_mode = 2
+text = "💾 저장"
+visible = false
+
+[node name="CancelEditButton" type="Button" parent="SideActions/VBox"]
+layout_mode = 2
+text = "취소"
+visible = false

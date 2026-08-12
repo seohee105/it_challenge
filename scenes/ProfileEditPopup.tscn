@@ -1,0 +1,293 @@
+[gd_scene format=3 uid="uid://ci1r512uk66rj"]
+
+[ext_resource type="Script" uid="uid://bpwdi60pxg0hd" path="res://scenes/ProfileEditPopup.gd" id="1_lmw4q"]
+[ext_resource type="Texture2D" uid="uid://dcan8hsxhwldh" path="res://tilemap/Panel2.png" id="2_6lvdo"]
+[ext_resource type="FontFile" uid="uid://bsshirb842jw5" path="res://Limgul13.ttf" id="2_lmw4q"]
+[ext_resource type="Texture2D" uid="uid://8fob2271vrbt" path="res://tilemap/BoyButton1.png" id="3_6lvdo"]
+[ext_resource type="Texture2D" uid="uid://bxxavm6k0w5sj" path="res://tilemap/BoyButton2.png" id="4_7y678"]
+[ext_resource type="Texture2D" uid="uid://kh1m7pc2ow8j" path="res://tilemap/GirlButton1.png" id="5_n4vle"]
+[ext_resource type="Texture2D" uid="uid://cw3h354ygbrkx" path="res://tilemap/GirlButton2.png" id="6_6qopw"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_21dmo"]
+bg_color = Color(0.6, 0.6, 0.6, 0.38431373)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_d4n5w"]
+bg_color = Color(0.6, 0.6, 0.6, 0.6862745)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_iwssv"]
+bg_color = Color(0.6, 0.6, 0.6, 0.38431373)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jdrka"]
+bg_color = Color(0.6, 0.6, 0.6, 0.6862745)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_c7fmg"]
+bg_color = Color(0.6, 0.6, 0.6, 0.38431373)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_10ov5"]
+bg_color = Color(0.6, 0.6, 0.6, 0.6862745)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bbnc2"]
+bg_color = Color(0.6, 0.6, 0.6, 0.38431373)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fd7rr"]
+bg_color = Color(0.6, 0.6, 0.6, 0.6862745)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_60mes"]
+bg_color = Color(0.5254902, 0.59607846, 0.8784314, 0.5882353)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_o5snt"]
+bg_color = Color(0.7175449, 0.7408082, 1, 1)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_3bnof"]
+
+[node name="ProfileEditPopup" type="Control" unique_id=1104476679]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_lmw4q")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=227523438]
+texture_filter = 1
+position = Vector2(722, 526.5)
+scale = Vector2(0.71744794, 1.1240234)
+texture = ExtResource("2_6lvdo")
+
+[node name="TitleLabel" type="Label" parent="." unique_id=863436336]
+layout_mode = 0
+offset_left = 367.0
+offset_top = 147.0
+offset_right = 923.0
+offset_bottom = 220.0
+theme_override_colors/font_color = Color(0.038397167, 0.038397167, 0.03839716, 1)
+theme_override_fonts/font = ExtResource("2_lmw4q")
+theme_override_font_sizes/font_size = 60
+text = "🖋️ 사용자 정보 수정"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="NicknameLabel" type="Label" parent="." unique_id=1426169356]
+layout_mode = 0
+offset_left = 370.0
+offset_top = 278.0
+offset_right = 502.0
+offset_bottom = 322.0
+theme_override_colors/font_color = Color(0.033853278, 0.033853278, 0.033853274, 1)
+theme_override_fonts/font = ExtResource("2_lmw4q")
+theme_override_font_sizes/font_size = 40
+text = "닉네임:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="NicknameInput" type="LineEdit" parent="." unique_id=819873094]
+layout_mode = 0
+offset_left = 563.0
+offset_top = 251.0
+offset_right = 996.0
+offset_bottom = 333.0
+theme_override_colors/font_color = Color(0.0407359, 0.04073607, 0.040735938, 1)
+theme_override_colors/font_placeholder_color = Color(0.1313785, 0.13137862, 0.13137856, 0.6)
+theme_override_colors/caret_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_lmw4q")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxFlat_21dmo")
+theme_override_styles/focus = SubResource("StyleBoxFlat_d4n5w")
+placeholder_text = "  닉네임을 입력하세요"
+
+[node name="GenderLabel" type="Label" parent="." unique_id=1009451795]
+layout_mode = 0
+offset_left = 390.0
+offset_top = 412.0
+offset_right = 482.0
+offset_bottom = 456.0
+theme_override_colors/font_color = Color(0.09239707, 0.09239706, 0.09239706, 1)
+theme_override_fonts/font = ExtResource("2_lmw4q")
+theme_override_font_sizes/font_size = 40
+text = "성별:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MaleButton" type="TextureButton" parent="." unique_id=934492989]
+texture_filter = 1
+layout_mode = 0
+offset_left = 585.0
+offset_top = 387.0
+offset_right = 777.0
+offset_bottom = 483.0
+texture_normal = ExtResource("3_6lvdo")
+texture_pressed = ExtResource("4_7y678")
+
+[node name="FemaleButton" type="TextureButton" parent="." unique_id=91558164]
+texture_filter = 1
+layout_mode = 0
+offset_left = 795.0
+offset_top = 388.0
+offset_right = 987.0
+offset_bottom = 484.0
+texture_normal = ExtResource("5_n4vle")
+texture_pressed = ExtResource("6_6qopw")
+
+[node name="HeightLabel" type="Label" parent="." unique_id=1377187843]
+layout_mode = 0
+offset_left = 416.0
+offset_top = 552.0
+offset_right = 468.0
+offset_bottom = 596.0
+theme_override_colors/font_color = Color(0.054142185, 0.05414217, 0.05414217, 1)
+theme_override_fonts/font = ExtResource("2_lmw4q")
+theme_override_font_sizes/font_size = 40
+text = "키:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HeightInput" type="LineEdit" parent="." unique_id=388934196]
+layout_mode = 0
+offset_left = 575.0
+offset_top = 532.0
+offset_right = 972.0
+offset_bottom = 619.0
+theme_override_colors/font_color = Color(0.060530208, 0.06053043, 0.060530253, 1)
+theme_override_colors/font_placeholder_color = Color(0.13333334, 0.13333334, 0.13333334, 0.6)
+theme_override_colors/caret_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_lmw4q")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxFlat_iwssv")
+theme_override_styles/focus = SubResource("StyleBoxFlat_jdrka")
+placeholder_text = "  키를 입력하세요"
+
+[node name="WeightLabel" type="Label" parent="." unique_id=168796346]
+layout_mode = 0
+offset_left = 364.0
+offset_top = 674.0
+offset_right = 496.0
+offset_bottom = 718.0
+theme_override_colors/font_color = Color(0.027409147, 0.027409151, 0.027409151, 1)
+theme_override_fonts/font = ExtResource("2_lmw4q")
+theme_override_font_sizes/font_size = 40
+text = "몸무게:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="WeightInput" type="LineEdit" parent="." unique_id=1179155825]
+layout_mode = 0
+offset_left = 569.0
+offset_top = 664.0
+offset_right = 992.0
+offset_bottom = 755.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_placeholder_color = Color(0.13333334, 0.13333334, 0.13333334, 0.6)
+theme_override_colors/caret_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_lmw4q")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxFlat_c7fmg")
+theme_override_styles/focus = SubResource("StyleBoxFlat_10ov5")
+placeholder_text = "  몸무게를 입력하세요"
+
+[node name="AgeLabel" type="Label" parent="." unique_id=140230738]
+layout_mode = 0
+offset_left = 393.0
+offset_top = 814.0
+offset_right = 485.0
+offset_bottom = 858.0
+theme_override_colors/font_color = Color(0.033853278, 0.033853278, 0.033853274, 1)
+theme_override_fonts/font = ExtResource("2_lmw4q")
+theme_override_font_sizes/font_size = 40
+text = "나이:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AgeInput" type="LineEdit" parent="." unique_id=2068227243]
+layout_mode = 0
+offset_left = 561.0
+offset_top = 796.0
+offset_right = 989.0
+offset_bottom = 877.0
+theme_override_colors/font_color = Color(0.036100805, 0.03610097, 0.03610084, 1)
+theme_override_colors/font_uneditable_color = Color(0, 0, 0, 0.5019608)
+theme_override_colors/font_placeholder_color = Color(0.13333334, 0.13333334, 0.13333334, 0.6)
+theme_override_colors/caret_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_lmw4q")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxFlat_bbnc2")
+theme_override_styles/focus = SubResource("StyleBoxFlat_fd7rr")
+placeholder_text = "  나이를 입력하세요"
+
+[node name="WarningLabel" type="Label" parent="." unique_id=1449461020]
+layout_mode = 0
+offset_left = 517.0
+offset_top = 899.0
+offset_right = 712.0
+offset_bottom = 982.0
+theme_override_colors/font_color = Color(0.8679144, 0.5005808, 0.4993354, 1)
+theme_override_fonts/font = ExtResource("2_lmw4q")
+theme_override_font_sizes/font_size = 30
+text = "! 경고 메세지 !"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SaveButton" type="Button" parent="." unique_id=505930313]
+layout_mode = 0
+offset_left = 946.0
+offset_top = 918.0
+offset_right = 1147.0
+offset_bottom = 995.0
+theme_override_colors/font_color = Color(0.12041821, 0.120418556, 0.12041832, 1)
+theme_override_fonts/font = ExtResource("2_lmw4q")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxFlat_60mes")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_o5snt")
+text = "저장하기"
+
+[node name="CancelButton" type="Button" parent="." unique_id=1292154716]
+layout_mode = 0
+offset_left = 1120.0
+offset_top = 128.0
+offset_right = 1198.0
+offset_bottom = 204.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_lmw4q")
+theme_override_font_sizes/font_size = 50
+theme_override_styles/normal = SubResource("StyleBoxTexture_3bnof")
+text = "X"

@@ -1,0 +1,188 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/Main.gd" id="1_main"]
+[ext_resource type="Script" path="res://scripts/AIClient.gd" id="2_ai"]
+[ext_resource type="Script" path="res://scripts/CameraManager.gd" id="3_camera"]
+[ext_resource type="Script" path="res://scripts/UIManager.gd" id="4_ui"]
+[ext_resource type="Theme" path="res://theme/game_theme.tres" id="5_theme"]
+
+[node name="FoodRecordPage" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("5_theme")
+script = ExtResource("1_main")
+
+[node name="AIClient" type="Node" parent="."]
+script = ExtResource("2_ai")
+
+[node name="CameraManager" type="Node" parent="."]
+script = ExtResource("3_camera")
+
+[node name="UIManager" type="Node" parent="."]
+script = ExtResource("4_ui")
+image_rect_path = NodePath("../FoodCardRoot/ContentMargin/VBox/FoodImage")
+status_label_path = NodePath("../FoodCardRoot/ContentMargin/VBox/StatusLabel")
+result_label_path = NodePath("../FoodCardRoot/ContentMargin/VBox/ResultScroll/ResultLabel")
+analyze_button_path = NodePath("../FoodCardRoot/ContentMargin/VBox/AnalyzeButton")
+result_photo_rect_path = NodePath("../FoodResultCardRoot/ContentMargin/ResultVBox/ResultPhotoRect")
+result_kcal_label_path = NodePath("../FoodResultCardRoot/ContentMargin/ResultVBox/ResultSummaryBox/ResultKcalLabel")
+result_carb_label_path = NodePath("../FoodResultCardRoot/ContentMargin/ResultVBox/ResultSummaryBox/ResultCarbLabel")
+result_protein_label_path = NodePath("../FoodResultCardRoot/ContentMargin/ResultVBox/ResultSummaryBox/ResultProteinLabel")
+result_fat_label_path = NodePath("../FoodResultCardRoot/ContentMargin/ResultVBox/ResultSummaryBox/ResultFatLabel")
+
+[node name="FoodCardRoot" type="Control" parent="."]
+layout_mode = 0
+offset_left = 45.0
+offset_top = 40.0
+offset_right = 700.0
+offset_bottom = 920.0
+
+[node name="ContentMargin" type="MarginContainer" parent="FoodCardRoot"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 25
+theme_override_constants/margin_top = 25
+theme_override_constants/margin_right = 25
+theme_override_constants/margin_bottom = 25
+
+[node name="VBox" type="VBoxContainer" parent="FoodCardRoot/ContentMargin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="TitleLabel" type="Label" parent="FoodCardRoot/ContentMargin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "🍽️ Food AI Camera"
+horizontal_alignment = 1
+
+[node name="SubtitleLabel" type="Label" parent="FoodCardRoot/ContentMargin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "사진을 찍거나 선택하면 AI가 영양 정보를 분석합니다"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="FoodImage" type="TextureRect" parent="FoodCardRoot/ContentMargin/VBox"]
+custom_minimum_size = Vector2(0, 220)
+layout_mode = 2
+size_flags_vertical = 3
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ButtonContainer" type="HBoxContainer" parent="FoodCardRoot/ContentMargin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="CameraButton" type="Button" parent="FoodCardRoot/ContentMargin/VBox/ButtonContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 72)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 22
+text = "📷 Camera"
+
+[node name="GalleryButton" type="Button" parent="FoodCardRoot/ContentMargin/VBox/ButtonContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 72)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 22
+text = "🖼️ Gallery"
+
+[node name="AnalyzeButton" type="Button" parent="FoodCardRoot/ContentMargin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 76)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "✨ Analyze"
+
+[node name="StatusLabel" type="Label" parent="FoodCardRoot/ContentMargin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "📸 사진을 촬영하거나 갤러리에서 선택해주세요."
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="ResultScroll" type="ScrollContainer" parent="FoodCardRoot/ContentMargin/VBox"]
+custom_minimum_size = Vector2(0, 180)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ResultLabel" type="Label" parent="FoodCardRoot/ContentMargin/VBox/ResultScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 16
+autowrap_mode = 3
+
+[node name="FoodResultCardRoot" type="Control" parent="."]
+layout_mode = 0
+offset_left = 790.0
+offset_top = 40.0
+offset_right = 1445.0
+offset_bottom = 920.0
+
+[node name="ContentMargin" type="MarginContainer" parent="FoodResultCardRoot"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 25
+theme_override_constants/margin_top = 25
+theme_override_constants/margin_right = 25
+theme_override_constants/margin_bottom = 25
+
+[node name="ResultVBox" type="VBoxContainer" parent="FoodResultCardRoot/ContentMargin"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="ResultTitleLabel" type="Label" parent="FoodResultCardRoot/ContentMargin/ResultVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "🍎 등록한 음식"
+horizontal_alignment = 1
+
+[node name="ResultPhotoRect" type="TextureRect" parent="FoodResultCardRoot/ContentMargin/ResultVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 380)
+layout_mode = 2
+size_flags_vertical = 3
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ResultSummaryBox" type="VBoxContainer" parent="FoodResultCardRoot/ContentMargin/ResultVBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ResultKcalLabel" type="Label" parent="FoodResultCardRoot/ContentMargin/ResultVBox/ResultSummaryBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "🔥 칼로리: -"
+
+[node name="ResultCarbLabel" type="Label" parent="FoodResultCardRoot/ContentMargin/ResultVBox/ResultSummaryBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "🍚 탄수화물: -"
+
+[node name="ResultProteinLabel" type="Label" parent="FoodResultCardRoot/ContentMargin/ResultVBox/ResultSummaryBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "🍗 단백질: -"
+
+[node name="ResultFatLabel" type="Label" parent="FoodResultCardRoot/ContentMargin/ResultVBox/ResultSummaryBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "🥑 지방: -"

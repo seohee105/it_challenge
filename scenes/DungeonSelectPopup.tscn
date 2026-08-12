@@ -1,0 +1,68 @@
+[gd_scene format=3 uid="uid://ck0xrbohmawcd"]
+
+[ext_resource type="Texture2D" uid="uid://y0iuw1hxixu4" path="res://assets/dungeon_select.png" id="1_mnxlx"]
+[ext_resource type="Script" uid="uid://ctrtu12d4enm0" path="res://scenes/DungeonSelectPopup.gd" id="1_xmm1k"]
+
+[node name="DungeonSelectPopup" type="Control" unique_id=764146366]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 8.0
+offset_bottom = -6.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_xmm1k")
+
+[node name="Dim" type="ColorRect" parent="." unique_id=846667245]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.27752772, 0.27752775, 0.27752766, 0.6901961)
+
+[node name="Panel" type="TextureRect" parent="." unique_id=822771800]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -566.0
+offset_top = -344.0
+offset_right = 566.0
+offset_bottom = 344.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_mnxlx")
+
+[node name="FastFoodButton" type="TextureButton" parent="Panel" unique_id=1485964944]
+texture_filter = 1
+layout_mode = 0
+offset_left = 22.0
+offset_top = 161.0
+offset_right = 344.0
+offset_bottom = 568.0
+
+[node name="DessertButton" type="TextureButton" parent="Panel" unique_id=57957731]
+layout_mode = 0
+offset_left = 392.0
+offset_top = 159.0
+offset_right = 723.0
+offset_bottom = 566.0
+
+[node name="SaladButton" type="TextureButton" parent="Panel" unique_id=433111628]
+layout_mode = 0
+offset_left = 772.0
+offset_top = 158.0
+offset_right = 1112.0
+offset_bottom = 570.0
+
+[node name="CloseButton" type="TextureButton" parent="Panel" unique_id=1715987618]
+layout_mode = 0
+offset_left = 1035.0
+offset_top = 24.0
+offset_right = 1106.0
+offset_bottom = 88.0

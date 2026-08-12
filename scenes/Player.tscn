@@ -1,0 +1,136 @@
+[gd_scene format=3 uid="uid://2f2qrgfnk5n4"]
+
+[ext_resource type="Script" uid="uid://bx8s8nc4w5hu2" path="res://scenes/Player.gd" id="1_3li8b"]
+[ext_resource type="Texture2D" uid="uid://csmxa2muiqcpv" path="res://tilemap/Girl_Jump.png" id="2_mdl7e"]
+[ext_resource type="Texture2D" uid="uid://dpj850txmut40" path="res://tilemap/Girl_Walk.png" id="3_qu4a1"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xpubu"]
+atlas = ExtResource("2_mdl7e")
+region = Rect2(0, 0, 288, 288)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cwbxj"]
+atlas = ExtResource("2_mdl7e")
+region = Rect2(288, 0, 288, 288)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_m8ey0"]
+atlas = ExtResource("2_mdl7e")
+region = Rect2(576, 0, 288, 288)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0xhas"]
+atlas = ExtResource("2_mdl7e")
+region = Rect2(864, 0, 288, 288)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7f400"]
+atlas = ExtResource("2_mdl7e")
+region = Rect2(1152, 0, 288, 288)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_v0jlt"]
+atlas = ExtResource("2_mdl7e")
+region = Rect2(1440, 0, 288, 288)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_288dg"]
+atlas = ExtResource("3_qu4a1")
+region = Rect2(0, 0, 288, 288)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_60ib6"]
+atlas = ExtResource("3_qu4a1")
+region = Rect2(288, 0, 288, 288)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_m1v5w"]
+atlas = ExtResource("3_qu4a1")
+region = Rect2(576, 0, 288, 288)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ra7i7"]
+atlas = ExtResource("3_qu4a1")
+region = Rect2(864, 0, 288, 288)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_q06tj"]
+atlas = ExtResource("3_qu4a1")
+region = Rect2(1152, 0, 288, 288)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yw177"]
+atlas = ExtResource("3_qu4a1")
+region = Rect2(1440, 0, 288, 288)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_60mes"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xpubu")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cwbxj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_m8ey0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0xhas")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7f400")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_v0jlt")
+}],
+"loop": 0,
+"name": &"Jump",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_288dg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_60ib6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_m1v5w")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ra7i7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_q06tj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yw177")
+}],
+"loop": 1,
+"name": &"Walk",
+"speed": 5.0
+}]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_140aq"]
+radius = 64.0
+height = 244.0
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_lr6j5"]
+radius = 82.0
+height = 306.0
+
+[node name="Player" type="CharacterBody2D" unique_id=1763495518]
+script = ExtResource("1_3li8b")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1839283940]
+texture_filter = 1
+position = Vector2(224.75002, 781.64703)
+scale = Vector2(1.2100694, 1.1850486)
+sprite_frames = SubResource("SpriteFrames_60mes")
+animation = &"Walk"
+
+[node name="BodyCollison" type="CollisionShape2D" parent="." unique_id=284132699]
+position = Vector2(243, 823)
+shape = SubResource("CapsuleShape2D_140aq")
+
+[node name="ItemDetector" type="Area2D" parent="." unique_id=1482579366]
+
+[node name="PickupCollision" type="CollisionShape2D" parent="ItemDetector" unique_id=652561510]
+position = Vector2(236, 809)
+shape = SubResource("CapsuleShape2D_lr6j5")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1547375863]
+position = Vector2(970, 545)
+offset = Vector2(200, 0)
+position_smoothing_enabled = true
+position_smoothing_speed = 7.0

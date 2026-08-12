@@ -1,0 +1,109 @@
+[gd_scene format=3 uid="uid://dbiv777o1tq1t"]
+
+[ext_resource type="Texture2D" uid="uid://da5xijeh3rq05" path="res://assets/backgrounds/하늘.png" id="1_fwrf6"]
+[ext_resource type="Texture2D" uid="uid://cy8ab7kojv4p2" path="res://assets/backgrounds/clouds/cloud_1.png" id="2"]
+[ext_resource type="Texture2D" uid="uid://be0abb2lfavmx" path="res://assets/backgrounds/clouds/cloud_2.png" id="3"]
+[ext_resource type="Texture2D" uid="uid://71gdnv1e3tqv" path="res://assets/backgrounds/clouds/cloud_3.png" id="4"]
+[ext_resource type="Texture2D" uid="uid://d04n8d88wtw3y" path="res://assets/backgrounds/clouds/cloud_4.png" id="5"]
+[ext_resource type="Texture2D" uid="uid://dw1jrgq54ryah" path="res://assets/backgrounds/clouds/cloud_5.png" id="6"]
+[ext_resource type="Texture2D" uid="uid://cojp554sako3p" path="res://assets/backgrounds/layer2_mountains.png" id="7"]
+[ext_resource type="Texture2D" uid="uid://cr5lxw3jqq7m4" path="res://assets/backgrounds/layer3_forest.png" id="8"]
+[ext_resource type="Texture2D" uid="uid://bqvglkvq3on14" path="res://assets/backgrounds/layer3_forest_landmark.png" id="9"]
+[ext_resource type="Texture2D" uid="uid://5ehtjgmbynrh" path="res://assets/backgrounds/가까운 소품(크기조정).png" id="10_5txi7"]
+
+[node name="Background" type="ParallaxBackground" unique_id=1461089974]
+
+[node name="SkyLayer" type="ParallaxLayer" parent="." unique_id=1453000023]
+position = Vector2(-9, 292)
+motion_scale = Vector2(0.1, 0.1)
+motion_mirroring = Vector2(2172, 0)
+
+[node name="SkySprite" type="TextureRect" parent="SkyLayer" unique_id=1010453227]
+offset_left = -5.0
+offset_top = -316.0
+offset_right = 2167.0
+offset_bottom = 408.0
+texture = ExtResource("1_fwrf6")
+stretch_mode = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="Cloud1" type="Sprite2D" parent="SkyLayer" unique_id=753683754]
+position = Vector2(313.5, -124)
+texture = ExtResource("2")
+
+[node name="Cloud2" type="Sprite2D" parent="SkyLayer" unique_id=1903431305]
+position = Vector2(867, -180)
+texture = ExtResource("3")
+
+[node name="Cloud3" type="Sprite2D" parent="SkyLayer" unique_id=471611856]
+position = Vector2(1317, -60)
+texture = ExtResource("4")
+
+[node name="Cloud4" type="Sprite2D" parent="SkyLayer" unique_id=700825106]
+position = Vector2(1699, -169)
+texture = ExtResource("5")
+
+[node name="Cloud5" type="Sprite2D" parent="SkyLayer" unique_id=417617493]
+position = Vector2(1995.5, -53)
+texture = ExtResource("6")
+
+[node name="MountainLayer" type="ParallaxLayer" parent="." unique_id=1268377081]
+position = Vector2(-9, 292)
+motion_scale = Vector2(0.3, 0.3)
+motion_mirroring = Vector2(1536, 0)
+
+[node name="MountainSprite" type="TextureRect" parent="MountainLayer" unique_id=857878249]
+offset_left = -74.0
+offset_top = -357.0
+offset_right = 3312.0
+offset_bottom = 142.0
+texture = ExtResource("7")
+stretch_mode = 1
+
+[node name="ForestLayer" type="ParallaxLayer" parent="." unique_id=459451030]
+position = Vector2(-9, 292)
+motion_scale = Vector2(0.6, 0.6)
+motion_mirroring = Vector2(1451, 0)
+
+[node name="ForestSprite" type="TextureRect" parent="ForestLayer" unique_id=307548753]
+offset_left = 157.0
+offset_top = -80.0
+offset_right = 2885.0
+offset_bottom = 139.0
+texture = ExtResource("8")
+stretch_mode = 1
+
+[node name="ForestLandmarkLayer" type="ParallaxLayer" parent="." unique_id=935816573]
+position = Vector2(-9, 292)
+motion_scale = Vector2(0.6, 0.6)
+
+[node name="LandmarkSprite" type="TextureRect" parent="ForestLandmarkLayer" unique_id=643424745]
+texture_repeat = 2
+offset_left = -914.0
+offset_top = -234.0
+offset_right = 3700.0
+offset_bottom = 138.0
+offset_transform_enabled = true
+offset_transform_position = Vector2(900, 66)
+offset_transform_pivot = Vector2(4608, 334)
+texture = ExtResource("9")
+stretch_mode = 1
+
+[node name="PropsLayer" type="ParallaxLayer" parent="." unique_id=2060770341]
+position = Vector2(-9, 292)
+motion_mirroring = Vector2(1536, 0)
+
+[node name="PropsSprite" type="TextureRect" parent="PropsLayer" unique_id=1824694354]
+texture_repeat = 2
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -33.0
+offset_top = -123.0
+offset_right = 3286.0
+offset_bottom = 211.0
+grow_horizontal = 2
+grow_vertical = 2
+offset_transform_enabled = true
+texture = ExtResource("10_5txi7")
+stretch_mode = 1

@@ -1,0 +1,216 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/CollectionRecordPage.gd" id="1_script"]
+[ext_resource type="Theme" path="res://theme/game_theme.tres" id="2_theme"]
+[ext_resource type="Texture2D" path="res://assets/ui/scroll_frame.png" id="3_card"]
+[ext_resource type="Texture2D" path="res://assets/ui/button_red.png" id="4_playbtn"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dim"]
+bg_color = Color(0.1, 0.08, 0.06, 0.55)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_portrait"]
+content_margin_left = 12.0
+content_margin_top = 12.0
+content_margin_right = 12.0
+content_margin_bottom = 12.0
+bg_color = Color(0.996, 0.965, 0.882, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.545, 0.353, 0.169, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_play"]
+content_margin_left = 18.0
+content_margin_top = 10.0
+content_margin_right = 18.0
+content_margin_bottom = 10.0
+texture = ExtResource("4_playbtn")
+texture_margin_left = 14.0
+texture_margin_top = 10.0
+texture_margin_right = 14.0
+texture_margin_bottom = 10.0
+
+[node name="CollectionRecordPage" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_theme")
+script = ExtResource("1_script")
+
+[node name="LeftCardRoot" type="Control" parent="."]
+layout_mode = 0
+offset_left = 45.0
+offset_top = 40.0
+offset_right = 700.0
+offset_bottom = 920.0
+
+[node name="ContentMargin" type="MarginContainer" parent="LeftCardRoot"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 28
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 28
+
+[node name="VBox" type="VBoxContainer" parent="LeftCardRoot/ContentMargin"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="TitleLabel" type="Label" parent="LeftCardRoot/ContentMargin/VBox"]
+layout_mode = 2
+theme_override_colors/font_outline_color = Color(0.318, 0.192, 0.078, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 32
+text = "캐릭터 도감"
+
+[node name="GridCenter" type="CenterContainer" parent="LeftCardRoot/ContentMargin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="CharacterGrid" type="GridContainer" parent="LeftCardRoot/ContentMargin/VBox/GridCenter"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/h_separation = 14
+theme_override_constants/v_separation = 14
+columns = 3
+
+[node name="FocusLayer" type="Control" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DimButton" type="Button" parent="FocusLayer"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 0
+theme_override_styles/normal = SubResource("StyleBoxFlat_dim")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dim")
+theme_override_styles/hover = SubResource("StyleBoxFlat_dim")
+theme_override_styles/focus = SubResource("StyleBoxFlat_dim")
+flat = true
+
+[node name="FocusCard" type="Control" parent="FocusLayer"]
+unique_name_in_owner = true
+clip_contents = true
+layout_mode = 1
+anchors_preset = 0
+offset_right = 10.0
+offset_bottom = 10.0
+
+[node name="CardBG" type="TextureRect" parent="FocusLayer/FocusCard"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_card")
+expand_mode = 1
+
+[node name="CardMargin" type="MarginContainer" parent="FocusLayer/FocusCard"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 75
+theme_override_constants/margin_top = 90
+theme_override_constants/margin_right = 75
+theme_override_constants/margin_bottom = 70
+
+[node name="CardVBox" type="VBoxContainer" parent="FocusLayer/FocusCard/CardMargin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="PortraitPanel" type="PanelContainer" parent="FocusLayer/FocusCard/CardMargin/CardVBox"]
+custom_minimum_size = Vector2(300, 300)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_portrait")
+
+[node name="PortraitCenter" type="CenterContainer" parent="FocusLayer/FocusCard/CardMargin/CardVBox/PortraitPanel"]
+layout_mode = 2
+
+[node name="PortraitLabel" type="Label" parent="FocusLayer/FocusCard/CardMargin/CardVBox/PortraitPanel/PortraitCenter"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 110
+text = "?"
+
+[node name="PortraitTexture" type="TextureRect" parent="FocusLayer/FocusCard/CardMargin/CardVBox/PortraitPanel/PortraitCenter"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(225, 225)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="FocusLayer/FocusCard/CardMargin/CardVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+horizontal_alignment = 1
+
+[node name="HintLabel" type="Label" parent="FocusLayer/FocusCard/CardMargin/CardVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "캐릭터 이미지 준비 중"
+horizontal_alignment = 1
+
+[node name="DescriptionLabel" type="Label" parent="FocusLayer/FocusCard/CardMargin/CardVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 16
+autowrap_mode = 3
+
+[node name="PlayButton" type="Button" parent="FocusLayer/FocusCard/CardMargin/CardVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 68)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 26
+theme_override_styles/normal = SubResource("StyleBoxTexture_play")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_play")
+theme_override_styles/hover = SubResource("StyleBoxTexture_play")
+text = "PLAY"
+
+[node name="CloseButton" type="Button" parent="FocusLayer/FocusCard"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -60.0
+offset_top = 18.0
+offset_right = -16.0
+offset_bottom = 62.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 20
+text = "✕"

@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://cplcfxyfry1nx"]
+
+[ext_resource type="Script" uid="uid://bftv63sxmibfd" path="res://scenes/ShieldItem.gd" id="1_aoyc4"]
+[ext_resource type="Texture2D" uid="uid://bpkdpo3l1a5lc" path="res://tilemap/items.png" id="2_o8rou"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_140aq"]
+radius = 45.01111
+
+[node name="ShieldItem" type="Area2D" unique_id=1250087295]
+script = ExtResource("1_aoyc4")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=555428729]
+texture_filter = 1
+position = Vector2(9812.001, 833)
+scale = Vector2(0.38312706, 0.3419543)
+texture = ExtResource("2_o8rou")
+region_enabled = true
+region_rect = Rect2(1131.4202, 333.42218, 323.73682, 261.0782)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1688422526]
+position = Vector2(9810, 832)
+shape = SubResource("CircleShape2D_140aq")

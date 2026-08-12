@@ -1,0 +1,48 @@
+[gd_scene format=3 uid="uid://dvtywe3jfhtcq"]
+
+[ext_resource type="Script" path="res://scripts/NavBar.gd" id="1_navbar"]
+[ext_resource type="Texture2D" uid="uid://c0x3n1tgum6yn" path="res://assets/ui/nav_bar_3btn.png" id="2_tex"]
+
+[node name="NavBar" type="Control" unique_id=81027814]
+custom_minimum_size = Vector2(600, 84)
+layout_mode = 3
+anchors_preset = 0
+size_flags_horizontal = 4
+script = ExtResource("1_navbar")
+
+[node name="Background" type="TextureRect" parent="." unique_id=2098121693]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_tex")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Buttons" type="HBoxContainer" parent="." unique_id=2057264012]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="NavCameraButton" type="Button" parent="Buttons" unique_id=2059212421]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+flat = true
+
+[node name="NavCalendarButton" type="Button" parent="Buttons" unique_id=792982623]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+flat = true
+
+[node name="NavBackButton" type="Button" parent="Buttons" unique_id=1234533760]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+flat = true

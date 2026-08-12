@@ -1,3 +1,11 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+
+# Android Studio / Gradle build artifacts (android_plugin native plugin project)
+android_plugin/**/.gradle/
+android_plugin/**/.idea/
+android_plugin/**/build/
+android_plugin/**/local.properties
+android_plugin/**/*.hprof
+android_plugin/**/*.log

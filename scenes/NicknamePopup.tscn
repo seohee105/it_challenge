@@ -1,0 +1,76 @@
+[gd_scene format=3 uid="uid://cj18dykcmx4gk"]
+
+[ext_resource type="Script" uid="uid://bnfuyqffcsdvi" path="res://scenes/NicknamePopup.gd" id="1_gsgba"]
+[ext_resource type="Texture2D" uid="uid://c5w7ceiliy314" path="res://tilemap/Panel.png" id="1_ocogi"]
+[ext_resource type="FontFile" uid="uid://bsshirb842jw5" path="res://Limgul13.ttf" id="2_dem6w"]
+[ext_resource type="Texture2D" uid="uid://b3h61lm3cx86k" path="res://tilemap/CheckButton1.png" id="3_bhynx"]
+[ext_resource type="Texture2D" uid="uid://b8jtugxidawc6" path="res://tilemap/CheckButton2.png" id="4_gsgba"]
+
+[sub_resource type="FontVariation" id="FontVariation_60mes"]
+base_font = ExtResource("2_dem6w")
+spacing_glyph = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_140aq"]
+bg_color = Color(0.7294118, 0.56078434, 0.3529412, 0.2627451)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gsgba"]
+bg_color = Color(0.9254902, 0.7882353, 0.6627451, 0.5686275)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+
+[node name="NicknamePopup" type="Control" unique_id=375920222]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_gsgba")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=194179446]
+position = Vector2(984, 473)
+scale = Vector2(0.71701914, 0.35548842)
+texture = ExtResource("1_ocogi")
+
+[node name="NicknameInput" type="LineEdit" parent="." unique_id=1456737937]
+layout_mode = 0
+offset_left = 789.0
+offset_top = 382.0
+offset_right = 1184.0
+offset_bottom = 476.0
+theme_override_colors/font_color = Color(0, 0, 0, 0.75686276)
+theme_override_colors/font_placeholder_color = Color(0.2784314, 0.2784314, 0.2784314, 0.75686276)
+theme_override_colors/caret_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = SubResource("FontVariation_60mes")
+theme_override_font_sizes/font_size = 28
+theme_override_styles/normal = SubResource("StyleBoxFlat_140aq")
+theme_override_styles/focus = SubResource("StyleBoxFlat_gsgba")
+placeholder_text = "닉네임을 입력해주세요"
+alignment = 1
+
+[node name="WarningLabel" type="Label" parent="." unique_id=762239673]
+layout_mode = 0
+offset_left = 861.0
+offset_top = 309.0
+offset_right = 1109.0
+offset_bottom = 343.0
+theme_override_colors/font_color = Color(0.82866865, 0.15537775, 6.3532593e-06, 1)
+theme_override_fonts/font = ExtResource("2_dem6w")
+text = "닉네임을 입력해주세요!"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ConfirmButton" type="TextureButton" parent="." unique_id=363725308]
+layout_mode = 0
+offset_left = 898.0
+offset_top = 510.0
+offset_right = 1058.0
+offset_bottom = 590.0
+texture_normal = ExtResource("3_bhynx")
+texture_pressed = ExtResource("4_gsgba")

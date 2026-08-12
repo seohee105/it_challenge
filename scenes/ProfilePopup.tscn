@@ -1,0 +1,197 @@
+[gd_scene format=3 uid="uid://d0twbk3vjwwlj"]
+
+[ext_resource type="Script" uid="uid://e6786164vylq" path="res://scenes/ProfilePopup.gd" id="1_ej4sk"]
+[ext_resource type="FontFile" uid="uid://bsshirb842jw5" path="res://Limgul13.ttf" id="2_ej4sk"]
+[ext_resource type="Texture2D" uid="uid://dcan8hsxhwldh" path="res://tilemap/Panel2.png" id="2_w4i74"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_60mes"]
+bg_color = Color(0.5574498, 0.7752232, 0.99999946, 1)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_140aq"]
+
+[node name="ProfilePopup" type="Control" unique_id=163025946]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ej4sk")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=63890605]
+texture_filter = 1
+position = Vector2(461, 453.49997)
+scale = Vector2(0.4934896, 0.93457025)
+texture = ExtResource("2_w4i74")
+
+[node name="TitleLabel" type="Label" parent="." unique_id=1779573332]
+layout_mode = 0
+offset_left = 302.0
+offset_top = 178.0
+offset_right = 638.0
+offset_bottom = 243.0
+theme_override_colors/font_color = Color(0.058420584, 0.0584206, 0.058420606, 1)
+theme_override_fonts/font = ExtResource("2_ej4sk")
+theme_override_font_sizes/font_size = 60
+text = "사용자 정보 "
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="NicknameTitleLabel" type="Label" parent="." unique_id=1261008843]
+layout_mode = 0
+offset_left = 287.0
+offset_top = 316.0
+offset_right = 419.0
+offset_bottom = 360.0
+theme_override_colors/font_color = Color(0.078814976, 0.07881499, 0.078814976, 1)
+theme_override_fonts/font = ExtResource("2_ej4sk")
+theme_override_font_sizes/font_size = 40
+text = "닉네임:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="NicknameLabel" type="Label" parent="." unique_id=244609062]
+layout_mode = 0
+offset_left = 465.0
+offset_top = 319.0
+offset_right = 585.0
+offset_bottom = 363.0
+theme_override_colors/font_color = Color(0.0885599, 0.0885599, 0.0885599, 1)
+theme_override_fonts/font = ExtResource("2_ej4sk")
+theme_override_font_sizes/font_size = 40
+text = "닉네임"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="GenderTitleLabel" type="Label" parent="." unique_id=1867498929]
+layout_mode = 0
+offset_left = 303.0
+offset_top = 418.0
+offset_right = 395.0
+offset_bottom = 462.0
+theme_override_colors/font_color = Color(0.11858138, 0.11858138, 0.11858138, 1)
+theme_override_fonts/font = ExtResource("2_ej4sk")
+theme_override_font_sizes/font_size = 40
+text = "성별:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="GenderLabel" type="Label" parent="." unique_id=1417785301]
+layout_mode = 0
+offset_left = 469.0
+offset_top = 398.0
+offset_right = 568.0
+offset_bottom = 476.0
+theme_override_colors/font_color = Color(0.11304883, 0.11304883, 0.11304883, 1)
+theme_override_fonts/font = ExtResource("2_ej4sk")
+theme_override_font_sizes/font_size = 40
+text = "여"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HeightTitleLabel" type="Label" parent="." unique_id=814619541]
+layout_mode = 0
+offset_left = 299.0
+offset_top = 505.0
+offset_right = 394.0
+offset_bottom = 575.0
+theme_override_colors/font_color = Color(0.13501206, 0.13501206, 0.13501206, 1)
+theme_override_fonts/font = ExtResource("2_ej4sk")
+theme_override_font_sizes/font_size = 40
+text = "키:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HeightLabel" type="Label" parent="." unique_id=1539862804]
+layout_mode = 0
+offset_left = 473.0
+offset_top = 515.0
+offset_right = 538.0
+offset_bottom = 559.0
+theme_override_colors/font_color = Color(0.10747976, 0.10747973, 0.10747973, 1)
+theme_override_fonts/font = ExtResource("2_ej4sk")
+theme_override_font_sizes/font_size = 40
+text = "180"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="WeightTitleLabel" type="Label" parent="." unique_id=566684898]
+layout_mode = 0
+offset_left = 276.0
+offset_top = 610.0
+offset_right = 408.0
+offset_bottom = 654.0
+theme_override_colors/font_color = Color(0.15667456, 0.15667456, 0.15667456, 1)
+theme_override_fonts/font = ExtResource("2_ej4sk")
+theme_override_font_sizes/font_size = 40
+text = "몸무게:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="WeightLabel" type="Label" parent="." unique_id=767456052]
+layout_mode = 0
+offset_left = 490.0
+offset_top = 603.0
+offset_right = 533.0
+offset_bottom = 647.0
+theme_override_colors/font_color = Color(0.13319641, 0.13319641, 0.13319638, 1)
+theme_override_fonts/font = ExtResource("2_ej4sk")
+theme_override_font_sizes/font_size = 40
+text = "80"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AgeTitleLabel" type="Label" parent="." unique_id=863529109]
+layout_mode = 0
+offset_left = 308.0
+offset_top = 700.0
+offset_right = 400.0
+offset_bottom = 744.0
+theme_override_colors/font_color = Color(0.13137859, 0.13137859, 0.13137859, 1)
+theme_override_fonts/font = ExtResource("2_ej4sk")
+theme_override_font_sizes/font_size = 40
+text = "나이:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AgeLabel" type="Label" parent="." unique_id=1807626692]
+layout_mode = 0
+offset_left = 465.0
+offset_top = 684.0
+offset_right = 562.0
+offset_bottom = 756.0
+theme_override_colors/font_color = Color(0.09430439, 0.094304405, 0.09430439, 1)
+theme_override_fonts/font = ExtResource("2_ej4sk")
+theme_override_font_sizes/font_size = 40
+text = "20"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="EditButton" type="Button" parent="." unique_id=630231106]
+layout_mode = 0
+offset_left = 596.0
+offset_top = 777.0
+offset_right = 780.0
+offset_bottom = 841.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_ej4sk")
+theme_override_font_sizes/font_size = 30
+theme_override_styles/normal = SubResource("StyleBoxFlat_60mes")
+text = "🖋️수정하기"
+
+[node name="CloseButton" type="Button" parent="." unique_id=2132150693]
+layout_mode = 0
+offset_left = 731.0
+offset_top = 121.0
+offset_right = 768.0
+offset_bottom = 175.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_ej4sk")
+theme_override_font_sizes/font_size = 50
+theme_override_styles/normal = SubResource("StyleBoxTexture_140aq")
+text = "X"

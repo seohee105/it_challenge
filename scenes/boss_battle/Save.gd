@@ -1,0 +1,90 @@
+## 저장 (오토로드) — 승리/연승 + 코인 + 카드 레벨
+extends Node
+
+const PATH := "user://save.cfg"
+
+var wins := 0
+var best_streak := 0
+var streak := 0
+var coins := 0
+var levels := [1, 1, 1]
+var char_id := "player"   # 선택된 유저 캐릭터 (전환 구조용, 기본 player)
+var owned_characters: Array = []   # 캐릭터 도감에서 코인으로 구매한 캐릭터 id 목록
+
+func _ready() -> void:
+	var cf := ConfigFile.new()
+	if cf.load(PATH) == OK:
+		wins = int(cf.get_value("stats", "wins", 0))
+		best_streak = int(cf.get_value("stats", "best_streak", 0))
+		coins = int(cf.get_value("stats", "coins", 0))
+		var lv = cf.get_value("stats", "levels", [1, 1, 1])
+		if lv is Array and lv.size() == 3:
+			levels = [int(lv[0]), int(lv[1]), int(lv[2])]
+		char_id = String(cf.get_value("stats", "char_id", "player"))
+		var owned = cf.get_value("stats", "owned_characters", [])
+		if owned is Array:
+			owned_characters = owned.duplicate()
+
+func record_win(reward: int) -> void:
+	wins += 1
+	streak += 1
+	if streak > best_streak:
+		best_streak = streak
+	coins += reward
+	_save()
+
+func record_loss(reward: int) -> void:
+	streak = 0
+	coins += reward
+	_save()
+
+func upgrade(i: int, price: int) -> bool:
+	if coins < price:
+		return false
+	coins -= price
+	levels[i] += 1
+	_save()
+	return true
+
+func set_char(id: String) -> void:
+	char_id = id
+	_save()
+
+func spend(n: int) -> bool:
+	if coins < n:
+		return false
+	coins -= n
+	_save()
+	return true
+
+
+# 다이어트 기록(식단/운동/목표 달성)으로 얻는 코인도 이 저장소(카드 강화 상점과
+# 동일한 코인)에 그대로 쌓인다.
+func add_coins(amount: int) -> void:
+	if amount <= 0:
+		return
+	coins += amount
+	_save()
+
+func owns_character(character_id: String) -> bool:
+	return owned_characters.has(character_id)
+
+func buy_character(character_id: String, price: int) -> bool:
+	if owns_character(character_id):
+		return true
+	if coins < price:
+		return false
+	coins -= price
+	owned_characters.append(character_id)
+	_save()
+	return true
+
+func _save() -> void:
+	var cf := ConfigFile.new()
+	cf.set_value("stats", "wins", wins)
+	cf.set_value("stats", "best_streak", best_streak)
+	cf.set_value("stats", "coins", coins)
+	cf.set_value("stats", "levels", levels)
+	cf.set_value("stats", "char_id", char_id)
+	cf.set_value("stats", "owned_characters", owned_characters)
+	cf.save(PATH)

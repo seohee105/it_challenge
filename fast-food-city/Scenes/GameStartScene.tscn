@@ -1,0 +1,46 @@
+[gd_scene format=3 uid="uid://codnypo2t5sv4"]
+
+[ext_resource type="Script" uid="uid://bksab0e5uutqp" path="res://fast-food-city/Scenes/GameStartScene.gd" id="1_3eppg"]
+[ext_resource type="FontFile" uid="uid://cjf4b6xdmajul" path="res://fast-food-city/VCR_OSD_MONO_1.001.ttf" id="1_dk6dr"]
+
+[node name="GameStartScene" type="Control" unique_id=1290227965]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_3eppg")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=759901709]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.12156863, 0.12156863, 0.12156863, 0.5882353)
+
+[node name="ReadyLabel" type="Label" parent="." unique_id=870646826]
+layout_mode = 0
+offset_left = 666.0
+offset_top = 429.0
+offset_right = 1281.0
+offset_bottom = 614.0
+theme_override_fonts/font = ExtResource("1_dk6dr")
+theme_override_font_sizes/font_size = 210
+text = "Ready"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="GameStartLabel" type="Label" parent="." unique_id=1230269945]
+layout_mode = 0
+offset_left = 322.0
+offset_top = 422.0
+offset_right = 1675.0
+offset_bottom = 607.0
+theme_override_fonts/font = ExtResource("1_dk6dr")
+theme_override_font_sizes/font_size = 210
+text = "Game Start!"
+horizontal_alignment = 1
+vertical_alignment = 1

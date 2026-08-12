@@ -1,0 +1,18 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://cwppxfnxooxsp"]
+
+[ext_resource type="Texture2D" uid="uid://ca8ttd6kadqmc" path="res://assets/tiles2/item/Copilot_20260805_032402.png" id="1_u7l1l"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wfya5"]
+atlas = ExtResource("1_u7l1l")
+region = Rect2(639, 394, 256, 256)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wfya5")
+}],
+"loop": 1,
+"name": &"sword",
+"speed": 5.0
+}]

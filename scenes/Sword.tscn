@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://dlsl43e7b2nuq"]
+
+[ext_resource type="Script" uid="uid://cd1ige4ktwu04" path="res://scenes/Sword.gd" id="1_sh16x"]
+[ext_resource type="Texture2D" uid="uid://bpkdpo3l1a5lc" path="res://tilemap/items.png" id="2_hmyes"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_60mes"]
+radius = 44.102154
+
+[node name="Sword" type="Area2D" unique_id=807836985]
+script = ExtResource("1_sh16x")
+
+[node name="Sprtie2D" type="Sprite2D" parent="." unique_id=1676761734]
+texture_filter = 1
+position = Vector2(2518, 837)
+scale = Vector2(0.3961685, 0.3896484)
+texture = ExtResource("2_hmyes")
+region_enabled = true
+region_rect = Rect2(646.8591, 343.86536, 248.54639, 256.90088)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1975542903]
+position = Vector2(2513, 839)
+shape = SubResource("CircleShape2D_60mes")

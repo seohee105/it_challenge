@@ -1,0 +1,363 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/CalendarScreen.gd" id="1_cal"]
+[ext_resource type="Script" path="res://scripts/MacroPieChart.gd" id="2_pie"]
+[ext_resource type="Theme" path="res://theme/game_theme.tres" id="3_theme"]
+[ext_resource type="Texture2D" path="res://assets/ui/arrow_left.png" id="4_arrow_l"]
+[ext_resource type="Texture2D" path="res://assets/ui/arrow_right.png" id="5_arrow_r"]
+[ext_resource type="Texture2D" path="res://assets/ui/icon_weight.png" id="6_weight"]
+[ext_resource type="Texture2D" path="res://assets/ui/icon_cardio.png" id="7_cardio"]
+[ext_resource type="Texture2D" path="res://assets/ui/coin_5.png" id="8_coin"]
+[ext_resource type="Texture2D" path="res://assets/ui/treasure_chest.png" id="9_chest"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_weekly_track"]
+bg_color = Color(0.85, 0.8, 0.68, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_weekly_fill"]
+bg_color = Color(0.42, 0.68, 0.32, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_monthly_fill"]
+bg_color = Color(0.85, 0.4, 0.55, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="DiaryRecordPage" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("3_theme")
+script = ExtResource("1_cal")
+day_cell_size = Vector2(82, 115)
+weekday_header_size = Vector2(82, 34)
+day_number_font_size = 20
+
+[node name="CalendarCardRoot" type="Control" parent="."]
+layout_mode = 0
+offset_left = 45.0
+offset_top = 40.0
+offset_right = 700.0
+offset_bottom = 920.0
+
+[node name="ContentMargin" type="MarginContainer" parent="CalendarCardRoot"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 25
+theme_override_constants/margin_top = 25
+theme_override_constants/margin_right = 25
+theme_override_constants/margin_bottom = 25
+
+[node name="CalendarPanel" type="VBoxContainer" parent="CalendarCardRoot/ContentMargin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="MonthNavRow" type="HBoxContainer" parent="CalendarCardRoot/ContentMargin/CalendarPanel"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 16
+
+[node name="PrevMonthButton" type="TextureButton" parent="CalendarCardRoot/ContentMargin/CalendarPanel/MonthNavRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(30, 36)
+layout_mode = 2
+texture_normal = ExtResource("4_arrow_l")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="MonthLabel" type="Label" parent="CalendarCardRoot/ContentMargin/CalendarPanel/MonthNavRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "0000년 0월"
+horizontal_alignment = 1
+
+[node name="NextMonthButton" type="TextureButton" parent="CalendarCardRoot/ContentMargin/CalendarPanel/MonthNavRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(30, 36)
+layout_mode = 2
+texture_normal = ExtResource("5_arrow_r")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="DayGrid" type="GridContainer" parent="CalendarCardRoot/ContentMargin/CalendarPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/h_separation = 4
+theme_override_constants/v_separation = 4
+columns = 7
+
+[node name="DetailCardRoot" type="Control" parent="."]
+layout_mode = 0
+offset_left = 790.0
+offset_top = 40.0
+offset_right = 1445.0
+offset_bottom = 920.0
+
+[node name="ContentMargin" type="MarginContainer" parent="DetailCardRoot"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 25
+theme_override_constants/margin_top = 25
+theme_override_constants/margin_right = 25
+theme_override_constants/margin_bottom = 25
+
+[node name="DetailPanel" type="VBoxContainer" parent="DetailCardRoot/ContentMargin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="DetailDateLabel" type="Label" parent="DetailCardRoot/ContentMargin/DetailPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "0월 0일"
+horizontal_alignment = 1
+
+[node name="PhotoRow" type="HBoxContainer" parent="DetailCardRoot/ContentMargin/DetailPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="PrevPhotoButton" type="TextureButton" parent="DetailCardRoot/ContentMargin/DetailPanel/PhotoRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(44, 50)
+layout_mode = 2
+size_flags_vertical = 4
+texture_normal = ExtResource("4_arrow_l")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="PhotoRect" type="TextureRect" parent="DetailCardRoot/ContentMargin/DetailPanel/PhotoRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 230)
+layout_mode = 2
+size_flags_horizontal = 3
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NextPhotoButton" type="TextureButton" parent="DetailCardRoot/ContentMargin/DetailPanel/PhotoRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(44, 50)
+layout_mode = 2
+size_flags_vertical = 4
+texture_normal = ExtResource("5_arrow_r")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="PhotoIndexLabel" type="Label" parent="DetailCardRoot/ContentMargin/DetailPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1
+text = "기록된 사진이 없습니다"
+
+[node name="MacroRow" type="HBoxContainer" parent="DetailCardRoot/ContentMargin/DetailPanel"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="PieChart" type="Control" parent="DetailCardRoot/ContentMargin/DetailPanel/MacroRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 140)
+layout_mode = 2
+script = ExtResource("2_pie")
+
+[node name="MacroLabels" type="VBoxContainer" parent="DetailCardRoot/ContentMargin/DetailPanel/MacroRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+theme_override_constants/separation = 6
+
+[node name="TotalKcalLabel" type="Label" parent="DetailCardRoot/ContentMargin/DetailPanel/MacroRow/MacroLabels"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "총 섭취 칼로리: 0 kcal"
+
+[node name="BurnedKcalLabel" type="Label" parent="DetailCardRoot/ContentMargin/DetailPanel/MacroRow/MacroLabels"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "총 소모 칼로리: 0 kcal"
+
+[node name="NetKcalLabel" type="Label" parent="DetailCardRoot/ContentMargin/DetailPanel/MacroRow/MacroLabels"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "최종 칼로리: 0 kcal"
+
+[node name="CarbLabel" type="Label" parent="DetailCardRoot/ContentMargin/DetailPanel/MacroRow/MacroLabels"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "탄수화물: 0 g"
+
+[node name="ProteinLabel" type="Label" parent="DetailCardRoot/ContentMargin/DetailPanel/MacroRow/MacroLabels"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "단백질: 0 g"
+
+[node name="FatLabel" type="Label" parent="DetailCardRoot/ContentMargin/DetailPanel/MacroRow/MacroLabels"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "지방: 0 g"
+
+[node name="CalorieBox" type="VBoxContainer" parent="DetailCardRoot/ContentMargin/DetailPanel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="CalorieBoxTitle" type="Label" parent="DetailCardRoot/ContentMargin/DetailPanel/CalorieBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 1
+text = "오늘의 운동"
+
+[node name="ExerciseRow" type="HBoxContainer" parent="DetailCardRoot/ContentMargin/DetailPanel/CalorieBox"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 22
+
+[node name="WeightRow" type="HBoxContainer" parent="DetailCardRoot/ContentMargin/DetailPanel/CalorieBox/ExerciseRow"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="WeightIcon" type="TextureRect" parent="DetailCardRoot/ContentMargin/DetailPanel/CalorieBox/ExerciseRow/WeightRow"]
+custom_minimum_size = Vector2(22, 28)
+layout_mode = 2
+texture = ExtResource("6_weight")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="WeightLabel" type="Label" parent="DetailCardRoot/ContentMargin/DetailPanel/CalorieBox/ExerciseRow/WeightRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+text = "웨이트 50분"
+vertical_alignment = 1
+
+[node name="CardioRow" type="HBoxContainer" parent="DetailCardRoot/ContentMargin/DetailPanel/CalorieBox/ExerciseRow"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="CardioIcon" type="TextureRect" parent="DetailCardRoot/ContentMargin/DetailPanel/CalorieBox/ExerciseRow/CardioRow"]
+custom_minimum_size = Vector2(28, 25)
+layout_mode = 2
+texture = ExtResource("7_cardio")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CardioLabel" type="Label" parent="DetailCardRoot/ContentMargin/DetailPanel/CalorieBox/ExerciseRow/CardioRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+text = "유산소 30분"
+vertical_alignment = 1
+
+[node name="StreakSection" type="VBoxContainer" parent="DetailCardRoot/ContentMargin/DetailPanel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="StreakSectionTitle" type="Label" parent="DetailCardRoot/ContentMargin/DetailPanel/StreakSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 1
+text = "연속 성공 보너스"
+
+[node name="StreakIconsRow" type="HBoxContainer" parent="DetailCardRoot/ContentMargin/DetailPanel/StreakSection"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 12
+
+[node name="Medal1" type="TextureRect" parent="DetailCardRoot/ContentMargin/DetailPanel/StreakSection/StreakIconsRow"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+texture = ExtResource("8_coin")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Medal2" type="TextureRect" parent="DetailCardRoot/ContentMargin/DetailPanel/StreakSection/StreakIconsRow"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+texture = ExtResource("8_coin")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Medal3" type="TextureRect" parent="DetailCardRoot/ContentMargin/DetailPanel/StreakSection/StreakIconsRow"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+texture = ExtResource("8_coin")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ChestIcon" type="TextureRect" parent="DetailCardRoot/ContentMargin/DetailPanel/StreakSection/StreakIconsRow"]
+custom_minimum_size = Vector2(38, 33)
+layout_mode = 2
+texture = ExtResource("9_chest")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StreakBarsRow" type="HBoxContainer" parent="DetailCardRoot/ContentMargin/DetailPanel/StreakSection"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="WeeklyBox" type="VBoxContainer" parent="DetailCardRoot/ContentMargin/DetailPanel/StreakSection/StreakBarsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 3
+
+[node name="WeeklyStreakLabel" type="Label" parent="DetailCardRoot/ContentMargin/DetailPanel/StreakSection/StreakBarsRow/WeeklyBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+horizontal_alignment = 1
+text = "주간 0/3"
+
+[node name="WeeklyProgress" type="ProgressBar" parent="DetailCardRoot/ContentMargin/DetailPanel/StreakSection/StreakBarsRow/WeeklyBox"]
+custom_minimum_size = Vector2(0, 14)
+layout_mode = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_weekly_track")
+theme_override_styles/fill = SubResource("StyleBoxFlat_weekly_fill")
+max_value = 3.0
+value = 0.0
+show_percentage = false
+
+[node name="MonthlyBox" type="VBoxContainer" parent="DetailCardRoot/ContentMargin/DetailPanel/StreakSection/StreakBarsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 3
+
+[node name="MonthlyStreakLabel" type="Label" parent="DetailCardRoot/ContentMargin/DetailPanel/StreakSection/StreakBarsRow/MonthlyBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+horizontal_alignment = 1
+text = "월간 0/1"
+
+[node name="MonthlyProgress" type="ProgressBar" parent="DetailCardRoot/ContentMargin/DetailPanel/StreakSection/StreakBarsRow/MonthlyBox"]
+custom_minimum_size = Vector2(0, 14)
+layout_mode = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_weekly_track")
+theme_override_styles/fill = SubResource("StyleBoxFlat_monthly_fill")
+max_value = 1.0
+value = 0.0
+show_percentage = false
